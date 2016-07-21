@@ -1,0 +1,9 @@
+!
+! NCL parameter table text file
+! MeteoSchweiz, Zurich, COSMO 4.7.1
+!
+-1 : 215 : -1 : 205
+1 :	SYNME5 :	- :	synthetic satellite images Meteosat5
+2 :	SYNME6 :	- :	synthetic satellite images Meteosat6
+3 :	SYNME7 :	- :	synthetic satellite images Meteosat7
+4 :	SYNMSG :	- :	synthetic satellite images MSG

@@ -15,8 +15,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import subprocess
 import glob, os
 import interp1_c
-import re
-import datetime
+
 
 DERIVED_VARS=['PREC_RATE','QV_v','QR_v','QS_v','QG_v','QC_v','QI_v','QH_v',
               'QNR_v','QNS_v','QNG_v','QNC_v','QNI_v','QNH_v',
@@ -148,13 +147,10 @@ def get_derived_var(file_instance, varname,get_proj_info):
     derived_var=None
     if varname == 'PREC_RATE': # PRECIPITATION RATE
         try:
-            d=get_variables(file,['PRR_GSP_GDS10_SFC','PRR_CON_GDS10_SFC','PRS_CON_GDS10_SFC','PRS_GSP_GDS10_SFC'],get_proj_info)
-            derived_var=d['PRR_GSP_GDS10_SFC']+d['PRR_CON_GDS10_SFC']+d['PRS_CON_GDS10_SFC']+d['PRS_GSP_GDS10_SFC']
-            if 'PRG_GSP_GDS10_SFC' in file.handle.variables.keys(): # Check if graupel is present
-                derived_var+=get_variable(file,'PRG_GSP_GDS10_SFC',get_proj_info)
-            if 'PRH_GSP_GDS10_SFC' in file.handle.variables.keys(): # Check if hail is present
-                derived_var+=get_variable(file,'PRH_GSP_GDS10_SFC',get_proj_info)
-
+            d=get_variables(file_instance,['PRR_GSP_GDS10_SFC','PRR_CON_GDS10_SFC','PRS_CON_GDS10_SFC','PRS_GSP_GDS10_SFC'],get_proj_info)
+            derived_var=d['PRR_GSP_GDS10_SFC']+d['PRR_CON_GDS10_SFC']+d['PRS_CON_GDS10_SFC']
+            if 'PRG_GSP_GDS10_SFC' in file_instance.handle.variables.keys(): # Check if graupel is present
+                derived_var+=get_variable(file_instance,'PRG_GSP_GDS10_SFC',get_proj_info)
             derived_var.name='PREC_RATE'
             derived_var.attributes['long_name']='precipitation intensity  [mm/s]'
         except:
@@ -370,17 +366,7 @@ def get_model_filenames(folder):
             
     return filenames
     
-def get_time_from_COSMO_filename(fname, spinup=12):
-    
-    bname=os.path.basename(fname)
-    dirname=os.path.dirname(fname)
-    event_date=re.findall(r"([0-9]{10})",dirname)[0]
-    event_date=datetime.datetime.strptime(event_date,'%Y%m%d%H')
-    tdelta=datetime.timedelta(days=int(bname[4:6]),hours=int(bname[6:8])-spinup,minutes=int(bname[8:10]),seconds=int(bname[10:12]))
-    time=event_date+tdelta
-    return time
 
-    
 def get_grib_keys():
     cur_path=os.path.dirname(os.path.realpath(__file__))
     f = open(cur_path+'/grib_keys.txt', 'r')

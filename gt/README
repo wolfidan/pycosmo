@@ -1,0 +1,10 @@
+The files in this directory contain the lookup tables that NCL uses to
+translate a grib table and parameter number into a variable name, long
+name and units. In order for NCL to find these tables, you will need
+to set the environment variable NCL_GRIB_PTABLE_PATH to point
+here. Note that if you make any manual changes or introduce a new
+variable, you will need to modify the grib_keys_cosmo.ncl file to
+reflect these changes. Note also, that these tables can change between
+the different COSMO model versions.
+
+fuo, 17.06.2009

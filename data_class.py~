@@ -11,10 +11,10 @@ from colormaps import get_colormap
 import glob, os
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
-import utilities
+import utilities as util
 from matplotlib.colors import LogNorm
 import datetime
-from file_class import File_class
+
 
 BASEMAPS={} # Dictionary of basemaps
 
@@ -39,10 +39,10 @@ class Data_class:
             try: # Check if corresponding variable exists
                 if("_x_" in dim):
                     var_name_dim=dim.replace('_x_','_lat_') # latitude
-                    res_i=self.file.handle.variables[var_name_dim].__dict__['Di'] 
-                    res_j=self.file.handle.variables[var_name_dim].__dict__['Di'] 
+                    res_i=self.file.handle.variables[var_name_dim].__dict__['Di'] # Trick to bring resolutions to 2 digit precision
+                    res_j=self.file.handle.variables[var_name_dim].__dict__['Di'] # This is to avoid floating point issues during comparisons
                     # Add resolution to attributes                    
-                    self.attributes['resolution']=[round(res_i[0]*1000)/1000,round(res_j[0]*1000)/1000] # Trick to bring resolutions to 2 digit precision
+                    self.attributes['resolution']=[round(res_i[0]*1000)/1000,round(res_j[0]*1000)/1000]
                     if get_proj_info:
                         dic_proj=self.file.handle.variables[var_name_dim].__dict__
                     coord_name='lat_2D'
@@ -90,7 +90,7 @@ class Data_class:
             pass 
         
     def copy(self):
-        cp=Data_class()
+        cp=data_class()
         cp.attributes=copy.deepcopy(self.attributes)
         cp.coordinates=copy.deepcopy(self.coordinates)
         for attr in self.__dict__.keys():
@@ -106,7 +106,7 @@ class Data_class:
         if isinstance(x,(int,float,bool,np.ndarray )): # We sum by a scalar
             cp=self.copy()
             cp.data+=x
-        elif isinstance(x, Data_class): # Sum by another variable
+        elif isinstance(x, data_class): # Sum by another variable
             if self.data.shape == x.data.shape and self.coordinates.keys() == x.coordinates.keys():
                 cp=self.copy()
                 cp.data+=x.data
@@ -121,7 +121,7 @@ class Data_class:
         if isinstance(x,(int,float,bool,np.ndarray )): # We sum by a scalar
             cp=self.copy()
             cp.data+=x
-        elif isinstance(x, Data_class): # Sum by another variable
+        elif isinstance(x, data_class): # Sum by another variable
             if self.data.shape == x.data.shape and self.coordinates.keys() == x.coordinates.keys():
                 cp=self.copy()
                 cp.data+=x.data
@@ -137,7 +137,7 @@ class Data_class:
         if isinstance(x,(int,float,bool,np.ndarray )): # We subtract by a scalar
             cp=self.copy()
             cp.data-=x
-        elif isinstance(x, Data_class): # Substract by another variable
+        elif isinstance(x, data_class): # Substract by another variable
             if self.data.shape == x.data.shape and self.coordinates.keys() == x.coordinates.keys():
                 cp=self.copy()
                 cp.data-=x.data
@@ -152,7 +152,7 @@ class Data_class:
         if isinstance(x,(int,float,bool,np.ndarray )): # We subtract by a scalar
             cp=self.copy()
             cp.data=x-cp.data
-        elif isinstance(x, Data_class): # Substract by another variable
+        elif isinstance(x, data_class): # Substract by another variable
             if self.data.shape == x.data.shape and self.coordinates.keys() == x.coordinates.keys():
                 cp=self.copy()
                 cp.data=x.data-cp.data
@@ -168,7 +168,7 @@ class Data_class:
         if isinstance(x,(int,float,bool,np.ndarray )): # We muliply by a scalar
             cp=self.copy()
             cp.data*=x
-        elif isinstance(x, Data_class): # Multiply by another variable
+        elif isinstance(x, data_class): # Multiply by another variable
             if self.data.shape == x.data.shape and self.coordinates.keys() == x.coordinates.keys():
                 cp=self.copy()
                 cp.data*=x.data
@@ -184,7 +184,7 @@ class Data_class:
         if isinstance(x,(int,float,bool,np.ndarray )): # We muliply by a scalar
             cp=self.copy()
             cp.data*=x
-        elif isinstance(x, Data_class): # Multiply by another variable
+        elif isinstance(x, data_class): # Multiply by another variable
             if self.data.shape == x.data.shape and self.coordinates.keys() == x.coordinates.keys():
                 cp=self.copy()
                 cp.data*=x.data
@@ -199,7 +199,7 @@ class Data_class:
         if isinstance(x,(int,float,bool,np.ndarray )): # We divide by a scalar
             cp=self.copy()
             cp.data/=x
-        elif isinstance(x, Data_class): # divide by another variable
+        elif isinstance(x, data_class): # divide by another variable
             if self.data.shape == x.data.shape and self.coordinates.keys() == x.coordinates.keys():
                 cp=self.copy()
                 cp.data/=x.data
@@ -214,7 +214,7 @@ class Data_class:
         if isinstance(x,(int,float,bool,np.ndarray )): # We divide by a scalar
             cp=self.copy()
             cp.data=x/cp.data
-        elif isinstance(x, Data_class): # divide by another variable
+        elif isinstance(x, data_class): # divide by another variable
             if self.data.shape == x.data.shape and self.coordinates.keys() == x.coordinates.keys():
                 cp=self.copy()
                 cp.data=x.data/cp.data
@@ -336,14 +336,14 @@ class Data_class:
             if options['filled']:
                 cbar=plt.colorbar(fraction=0.046, pad=0.04, label=options['cbar_title'])
                 cbar.set_ticks(options['levels'])
-                cbar.set_ticklabels(utilities.format_ticks(options['levels'],decimals=2))
+                cbar.set_ticklabels(util.format_ticks(options['levels'],decimals=2))
             else:
                 ax=plt.gca()
                 box = ax.get_position()
                 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
                 for pc in CS.collections:
                     proxy = [plt.Rectangle((0,0),1,1,fc = pc.get_edgecolor()[0]) for pc in CS.collections] 
-                lgd=plt.legend(proxy, utilities.format_ticks(options['levels'],decimals=2),loc='center left', bbox_to_anchor=(1, 0.6), title=options['cbar_title'])
+                lgd=plt.legend(proxy, util.format_ticks(options['levels'],decimals=2),loc='center left', bbox_to_anchor=(1, 0.6), title=options['cbar_title'])
                 ax.add_artist(lgd)
  
         fig['cont_handle']=CS
@@ -384,7 +384,7 @@ class Data_class:
             file_folder=os.path.dirname(self.file.name)
             c_files=glob.glob(file_folder+'*c.*')
             if(len(c_files)>1):
-                cfile=utilities.open_file(c_files[0])
+                cfile=util.open_file(c_files[0])
                 print 'c-file found in folder: '+c_files[0]
             else:
                 print 'No c-file found in folder, trying to use a standard-one over Switzerland'
@@ -392,9 +392,9 @@ class Data_class:
                 if 'resolution' in self.attributes.keys():
                     if self.attributes['resolution'][0] == 0.02 and self.attributes['resolution'][1] == 0.02 : # COSMO-2
                         cur_path=os.path.dirname(os.path.realpath(__file__))
-                        cfile=File_class(cur_path+'/constant_files/cosmo2_constant.nc')
+                        cfile=util.file_class(cur_path+'/constant_files/cosmo2_constant.nc')
                     elif self.attributes['resolution'][0] == 0.07 and self.attributes['resolution'][1] == 0.07 : # COSMO-7
-                        cfile=File_class(cur_path+'/constant_files/cosmo7_constant.nc')
+                        cfile=util.file_class(cur_path+'/constant_files/cosmo7_constant.nc')
                     else:
                         print 'No c-file available for this resolution, aborting...'
                         return
@@ -402,16 +402,16 @@ class Data_class:
                     print 'No resolution attribute found, cannot find corresponding reference c-file...'
                     return
         else:
-              cfile=utilities.open_file(cfile)
+              cfile=util.open_file(cfile)
         
         # HHL is a 3D matrix that gives the height of every element
-        HHL = utilities.get_variable(cfile, 'HH_GDS10_HYBL')
+        HHL = util.get_variable(cfile, 'HH_GDS10_HYBL')
 
         # Check if heights are one the same hybrid levels, otherwise take the center
         #print HHL.data.shape[0], self.data.shape[0]
         if self.data.shape[0] < HHL.data.shape[0]: # ==> More levels in the vertical heights
             
-            HHL=utilities.hyb_avg(HHL)
+            HHL=util.hyb_avg(HHL)
 
         self.attributes['z-levels']=HHL.data.astype('float32')
 
