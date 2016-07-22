@@ -146,204 +146,142 @@ def get_constants():
 def get_derived_var(file_instance, varname,get_proj_info):
     dic_csts=get_constants()
     derived_var=None
-    if varname == 'PREC_RATE': # PRECIPITATION RATE
-        try:
-            d=get_variables(file,['PRR_GSP_GDS10_SFC','PRR_CON_GDS10_SFC','PRS_CON_GDS10_SFC','PRS_GSP_GDS10_SFC'],get_proj_info)
+    try:
+        if varname == 'PREC_RATE': # PRECIPITATION RATE
+            d = get_variables(file_instance,['PRR_GSP_GDS10_SFC','PRR_CON_GDS10_SFC','PRS_CON_GDS10_SFC','PRS_GSP_GDS10_SFC'],get_proj_info)
             derived_var=d['PRR_GSP_GDS10_SFC']+d['PRR_CON_GDS10_SFC']+d['PRS_CON_GDS10_SFC']+d['PRS_GSP_GDS10_SFC']
-            if 'PRG_GSP_GDS10_SFC' in file.handle.variables.keys(): # Check if graupel is present
-                derived_var+=get_variable(file,'PRG_GSP_GDS10_SFC',get_proj_info)
-            if 'PRH_GSP_GDS10_SFC' in file.handle.variables.keys(): # Check if hail is present
-                derived_var+=get_variable(file,'PRH_GSP_GDS10_SFC',get_proj_info)
-
+            if 'PRG_GSP_GDS10_SFC' in file_instance.handle.variables.keys(): # Check if graupel is present
+                derived_var+=get_variable(file_instance,'PRG_GSP_GDS10_SFC',get_proj_info)
+            if 'PRH_GSP_GDS10_SFC' in file_instance.handle.variables.keys(): # Check if hail is present
+                derived_var+=get_variable(file_instance,'PRH_GSP_GDS10_SFC',get_proj_info)
             derived_var.name='PREC_RATE'
             derived_var.attributes['long_name']='precipitation intensity  [mm/s]'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'
-    elif varname == 'QV_v': # Water vapour mass density
-        try:
+        elif varname == 'QV_v': # Water vapour mass density
             d=get_variables(file_instance,['QV','RHO'],get_proj_info)
             derived_var=d['QV']*d['RHO']
             derived_var.name='QV_v'
             derived_var.attributes['units']='kg/m3'
             derived_var.attributes['long_name']='Water vapor mass density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'
-    elif varname == 'QR_v': # Rain water mass density
-        try:
+        elif varname == 'QR_v': # Rain water mass density
             d=get_variables(file_instance,['QR','RHO'],get_proj_info)
             derived_var=d['QR']*d['RHO']
             derived_var.name='QR_v'
             derived_var.attributes['units']='kg/m3'
             derived_var.attributes['long_name']='Rain water mass density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'
-    elif varname == 'QS_v': # Snow water mass density
-        try:
+        elif varname == 'QS_v': # Snow water mass density
             d=get_variables(file_instance,['QS','RHO'],get_proj_info)
             derived_var=d['QS']*d['RHO']
             derived_var.name='QS_v'
             derived_var.attributes['units']='kg/m3'
             derived_var.attributes['long_name']='Snow water mass density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'
-    elif varname == 'QG_v': # Graupel water mass density
-        try:
+        elif varname == 'QG_v': # Graupel water mass density
             d=get_variables(file_instance,['QG','RHO'],get_proj_info)
             derived_var=d['QG']*d['RHO']
             derived_var.name='QG_v'
             derived_var.attributes['units']='kg/m3'
             derived_var.attributes['long_name']='Graupel water mass density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'
-    elif varname == 'QC_v': # Cloud water mass density
-        try:
+        elif varname == 'QC_v': # Cloud water mass density
             d=get_variables(file_instance,['QC','RHO'],get_proj_info)
             derived_var=d['QC']*d['RHO']
             derived_var.name='QC_v'
             derived_var.attributes['units']='kg/m3'
             derived_var.attributes['long_name']='Cloud water mass density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'
-    elif varname == 'QI_v': # Ice cloud water mass density
-        try:
+        elif varname == 'QI_v': # Ice cloud water mass density
             d=get_variables(file_instance,['QI','RHO'],get_proj_info)
             derived_var=d['QI']*d['RHO']
             derived_var.name='QI_v'
             derived_var.attributes['units']='kg/m3'
-            derived_var.attributes['long_name']='Ice cloud water mass density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'            
-    elif varname == 'QH_v': # Hail water mass density
-        try:
+            derived_var.attributes['long_name']='Ice cloud water mass density'        
+        elif varname == 'QH_v': # Hail water mass density
             d=get_variables(file_instance,['QH','RHO'],get_proj_info)
             derived_var=d['QH']*d['RHO']
             derived_var.name='QH_v'
             derived_var.attributes['units']='kg/m3'
             derived_var.attributes['long_name']='Hail water mass density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'   
-    elif varname == 'QNR_v': # Rain number density
-        try:
+        elif varname == 'QNR_v': # Rain number density
             d=get_variables(file_instance,['QNR','RHO'],get_proj_info)
             derived_var=d['QNR']*d['RHO']
             derived_var.name='QNR_v'
             derived_var.attributes['units']='m^-3'
             derived_var.attributes['long_name']='Rain number density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'   
-    elif varname == 'QNS_v': # Snow number density
-        try:
+        elif varname == 'QNS_v': # Snow number density
             d=get_variables(file_instance,['QNS','RHO'],get_proj_info)
             derived_var=d['QNS']*d['RHO']
             derived_var.name='QNS_v'
             derived_var.attributes['units']='m^-3'
             derived_var.attributes['long_name']='Snow number density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'   
-    elif varname == 'QNG_v': # Graupel number density
-        try:
+        elif varname == 'QNG_v': # Graupel number density
             d=get_variables(file_instance,['QNG','RHO'],get_proj_info)
             derived_var=d['QNG']*d['RHO']
             derived_var.name='QNG_v'
             derived_var.attributes['units']='m^-3'
             derived_var.attributes['long_name']='Graupel number density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'   
-    elif varname == 'QNC_v': # Cloud number density
-        try:
+        elif varname == 'QNC_v': # Cloud number density
             d=get_variables(file_instance,['QNC','RHO'],get_proj_info)
             derived_var=d['QNC']*d['RHO']
             derived_var.name='QNC_v'
             derived_var.attributes['units']='m^-3'
-            derived_var.attributes['long_name']='Rain number density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'   
-    elif varname == 'QNI_v': # Ice cloud particles number density
-        try:
+            derived_var.attributes['long_name']='Rain number density' 
+        elif varname == 'QNI_v': # Ice cloud particles number density
             d=get_variables(file_instance,['QNI','RHO'],get_proj_info)
             derived_var=d['QNI']*d['RHO']
             derived_var.name='QNI_v'
             derived_var.attributes['units']='m^-3'
             derived_var.attributes['long_name']='Ice cloud particles number density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'   
-    elif varname == 'QNH_v': # Hail number density
-        try:
+        elif varname == 'QNH_v': # Hail number density
             d=get_variables(file_instance,['QNH','RHO'],get_proj_info)
             derived_var=d['QNH']*d['RHO']
             derived_var.name='QNH_v'
             derived_var.attributes['units']='m^-3'
-            derived_var.attributes['long_name']='Rain number density'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'               
-    elif varname == 'LWC': # LIQUID WATER CONTENT
-        try:
+            derived_var.attributes['long_name']='Rain number density'          
+        elif varname == 'LWC': # LIQUID WATER CONTENT
             d=get_variables(file_instance,['QC','QR'],get_proj_info)
             derived_var=d['QC']+d['QR']
             derived_var=derived_var*100000
             derived_var.name='LWC'
             derived_var.attributes['units']='mg/kg'
             derived_var.attributes['long_name']='Liquid water content'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'
-    elif varname == 'IWC': # ICE WATER CONTENT
-        try:
+        elif varname == 'IWC': # ICE WATER CONTENT
             d=get_variables(file_instance,['QG','QS','QI'],get_proj_info)
             derived_var=d['QG']+d['QS']+d['QI']
             derived_var=derived_var*100000
             derived_var.name='IWC'
             derived_var.attributes['units']='mg/kg'
             derived_var.attributes['long_name']='Ice water content'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'
-    elif varname == 'TWC': # TOTAL WATER CONTENT 
-        try:
+        elif varname == 'TWC': # TOTAL WATER CONTENT 
             d=get_variables(file_instance,['QG','QS','QI','QC','QV','QR'],get_proj_info)
             derived_var=d['QG']+d['QS']+d['QI']+d['QC']+d['QV']+d['QR']
             derived_var=derived_var*100000
             derived_var.name='TWC'
             derived_var.attributes['long_name']='Total water content'
-            derived_var.attributes['units']='mg/kg'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'            
-    elif varname == 'RHO': # AIR DENSITY
-        try:
+            derived_var.attributes['units']='mg/kg'         
+        elif varname == 'RHO': # AIR DENSITY
             d=get_variables(file_instance,['P','T','QV','QR','QC','QI','QS','QG'],get_proj_info)
             derived_var=d['P']/(d['T']*dic_csts['cosmo_r_d']*((d['QV']*dic_csts['cosmo_rvd_m_o']-d['QR']-d['QC']-d['QI']
             -d['QS']-d['QG'])+1.0))
             derived_var.name='RHO'
             derived_var.attributes['long_name']='Air density'
-            derived_var.attributes['units']='kg/m3'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'       
-    elif varname == 'Pw': # Vapor pressure
-        try:
+            derived_var.attributes['units']='kg/m3'     
+        elif varname == 'Pw': # Vapor pressure
             d=get_variables(file_instance,['P','QV'],get_proj_info)
             derived_var=(d['P']*d['QV'])/(d['QV']*(1-0.6357)+0.6357)
             derived_var.attributes['long_name']='Vapor pressure'
-            derived_var.attributes['units']='Pa'        
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'       
-    elif varname == 'RELHUM': # Vapor pressure
-        try:
+            derived_var.attributes['units']='Pa'            
+        elif varname == 'RELHUM': # Vapor pressure
             d=get_variables(file_instance,['Pw','T'],get_proj_info)
             esat=610.78*np.exp(17.2693882*(d['T'].data-273.16)/(d['T'].data-35.86)) # TODO
             derived_var=d['Pw']/esat*100
             derived_var.attributes['long_name']='Relative humidity'
-            derived_var.attributes['units']='%'        
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'     
-    elif varname == 'N': # Refractivity
-        try:
+            derived_var.attributes['units']='%'          
+        elif varname == 'N': # Refractivity
             d=get_variables(file_instance,['T','Pw','P'],get_proj_info)
             derived_var=(77.6/d['T'])*(0.01*d['P']+4810*(0.01*d['Pw'])/d['T'])
             derived_var.attributes['long_name']='Refractivity'
-            derived_var.attributes['units']='-'
-        except:
-            print 'Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.'       
-    else:
-        print 'Could not compute derived variable, please specify a valid variable name:'
-        print 'PREC_RATE, IWC, TWC, LWC or RHO'
+            derived_var.attributes['units']='-'     
+        else:
+            print('Could not compute derived variable, please specify a valid variable name')
+    except:
+        print('Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.')        
     return derived_var 
     
 def get_model_filenames(folder):
