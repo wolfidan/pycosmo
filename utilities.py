@@ -237,21 +237,21 @@ def get_derived_var(file_instance, varname,get_proj_info):
         elif varname == 'LWC': # LIQUID WATER CONTENT
             d=get_variables(file_instance,['QC','QR'],get_proj_info)
             derived_var=d['QC']+d['QR']
-            derived_var=derived_var*100000
+            derived_var=derived_var*1E6
             derived_var.name='LWC'
             derived_var.attributes['units']='mg/kg'
             derived_var.attributes['long_name']='Liquid water content'
         elif varname == 'IWC': # ICE WATER CONTENT
             d=get_variables(file_instance,['QG','QS','QI'],get_proj_info)
             derived_var=d['QG']+d['QS']+d['QI']
-            derived_var=derived_var*100000
+            derived_var=derived_var*1E6
             derived_var.name='IWC'
             derived_var.attributes['units']='mg/kg'
             derived_var.attributes['long_name']='Ice water content'
         elif varname == 'TWC': # TOTAL WATER CONTENT 
             d=get_variables(file_instance,['QG','QS','QI','QC','QV','QR'],get_proj_info)
             derived_var=d['QG']+d['QS']+d['QI']+d['QC']+d['QV']+d['QR']
-            derived_var=derived_var*100000
+            derived_var=derived_var*1E6
             derived_var.name='TWC'
             derived_var.attributes['long_name']='Total water content'
             derived_var.attributes['units']='mg/kg'         
@@ -596,6 +596,7 @@ def vert_interp(var, heights):
             print 'Interpolating a 3-D variable vertically, this might take a while'
             print 'It is recommended to first slice your variable before you interpolate it...'
             if len(heights)==1:
+                
                 interp_data=np.zeros((siz[1], siz[2]))
             else:
                 interp_data=np.zeros((len(heights),siz[1], siz[2]))

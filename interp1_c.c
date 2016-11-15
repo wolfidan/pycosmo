@@ -9,8 +9,8 @@ int binary_search(float *arr, int dim, float key){
    int middle = 0;
    int pos_left=0;
    int pos_right=0;
-   
-   if(key>arr[0] || key<arr[dim]){
+
+   if(key>arr[0] || key<arr[dim-1]){
 	return -1;
    }
    while (high < low) {
@@ -25,8 +25,7 @@ int binary_search(float *arr, int dim, float key){
       {low=middle;}
       else if (arr[middle] > key){
 	  high=middle;}
-   }
-   return -1;   
+   } 
 }
 
 extern float* interp1( float *yy, int yy_tam, float *x, int x_tam, float *y, int y_tam, float *xx, int xx_tam)
