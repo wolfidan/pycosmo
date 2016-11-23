@@ -4,24 +4,18 @@ Created on Mon Apr 20 15:31:55 2015
 
 @author: wolfensb
 """
+import pycosmo.c.interp1_c as interp1_c
+
+from scipy.interpolate import interp1d
 from scipy.io import netcdf
 import matplotlib.pyplot as plt
-import pyproj
-from fnmatch import fnmatch
-import file_class
-import data_class
 import numpy as np
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import subprocess
 import glob, os
-import interp1_c
 import re
 import datetime
-
-DERIVED_VARS=['PREC_RATE','QV_v','QR_v','QS_v','QG_v','QC_v','QI_v','QH_v',
-              'QNR_v','QNS_v','QNG_v','QNC_v','QNI_v','QNH_v',
-              'LWC','TWC','IWC','RHO','N','Pw','RELHUM']
-             
+            
                            
 
 def binary_search(vec, val):
@@ -42,88 +36,6 @@ def binary_search(vec, val):
             hi = mid
     return -1
     
-def check_if_variables_in_file(file_instance, varnames):
-    for var in varnames:
-        varname_checked=check_varname(file_instance,var)
-        if varname_checked == '':
-            return False
-    return True
-    
-def check_varname(file_instance, varname):
-    varname_checked=''    
-    # First try to find variable in file_instance
-    list_vars=np.asarray((file_instance.handle.variables.keys()))
-
-    if varname in list_vars:
-        varname_checked = varname
-    else:  # Then try to find it using the grib key dictionary
-        dic=get_grib_keys()
-        if varname in dic.keys():
-            grib_varname=dic[varname]
-            match=list_vars[np.where([fnmatch(l,grib_varname) for l in list_vars])[0]]
-            if len(match) > 1:
-                # Several matches were found in the file_instance, we will keep only the ones that do not match with any other key in the grib key dictionary
-                all_grb_keys=dic.values()
-                match_check=[]
-                for m in match:
-                    if not any([fnmatch(l,m) for l in all_grb_keys]): # Check if other keys 
-                        match_check.append(m)
-                if(match_check):
-                    varname_checked=match_check[0]
-                else:
-                    varname_checked=match[0]
-            elif len(match) == 1: # If only one match, use that one
-                varname_checked=match[0]
-        else: # Try to see if varname was entered with a wildcard
-            match=list_vars[np.where([fnmatch(l,varname) for l in list_vars])[0]]
-            if len(match) >= 1:
-                varname_checked=match[0]
-                
-    return varname_checked
-    
-
-def coords_profile(start, stop, step=-1, npts=-1):
-    # This function gets points along a profile_instance specified by a tuple of starting coordinates (lat/lon) 
-    # and ending coordinates (lat/lon). Either a number of points can be specified, in which case the profile_instance 
-    # will consist of N linearly spaced points or a constant distance step, in which case the number of points in the profile_instance 
-    # will be the total distance divided by the distance step.
-    # This function is particularly convenient when we want to create a slice with the 'latlon' option
-    start=np.asarray(start)
-    stop=np.asarray(stop)
-    use_step=False
-    use_npts=False
-    # Check inputs
-    if step <= 0 and npts < 3:
-        print 'Neither a valid distance step nor a valid number of points of the transect have been specified, please provide one or the other!'
-        print 'Number of points must be larger than 3 and step distance must be larger than 0'
-        return []
-    elif step > 0 and npts >= 3:
-        print 'Both a distance step and a number of points in the transect have been specified, only the distance step will be used!'
-        use_step=True
-    elif step > 0 and npts < 3:
-        use_step=True
-    else:
-        use_npts=True
-        
-    g = pyproj.Geod(ellps='clrk66') # Use Clarke 1966 ellipsoid.
-    az12,az21,dist = g.inv(start[1],start[0],stop[1],stop[0]) # Backward transform
-    
-    if use_step:
-        npts=np.floor(dist/step)
-        dist=npts*step
-        endlon, endlat, backaz = g.fwd(start[1],start[0],az12, dist)
-        profile_instance = g.npts(start[1],start[0], endlon, endlat ,npts-2)
-    if use_npts:
-        profile_instance = g.npts(start[1],start[0],stop[1],stop[0],npts-2)
-    
-    # Add start and stop points
-    profile_instance.insert(0,(start[1],start[0]))
-    profile_instance.insert(len(profile_instance),(stop[1],stop[0]))
-    profile_instance=np.asarray(profile_instance)
-    # Swap columns to get latitude first (lat/lon)
-    profile_instance[:,[0, 1]] = profile_instance[:,[1, 0]]
-    
-    return profile_instance
     
 def format_ticks(labels,decimals=2):
     labels_f=labels
@@ -132,157 +44,6 @@ def format_ticks(labels,decimals=2):
         else: labels_f[idx]=round(val,decimals)
     return labels_f    
 
-
-def get_constants():
-    constants={}
-    constants['cosmo_r_d']=287.05
-    constants['cosmo_r_v']= 451.51
-    constants['cosmo_rdv'] = constants['cosmo_r_d'] / constants['cosmo_r_v']
-    constants['cosmo_o_m_rdv'] = 1.0 - constants['cosmo_rdv']
-    constants['cosmo_rvd_m_o'] = constants['cosmo_r_v'] / constants['cosmo_r_d'] - 1.0
-    return constants
-    
-    
-def get_derived_var(file_instance, varname,get_proj_info):
-    dic_csts=get_constants()
-    derived_var=None
-    try:
-        if varname == 'PREC_RATE': # PRECIPITATION RATE
-            d = get_variables(file_instance,['PRR_GSP_GDS10_SFC','PRR_CON_GDS10_SFC','PRS_CON_GDS10_SFC','PRS_GSP_GDS10_SFC'],get_proj_info)
-            derived_var=d['PRR_GSP_GDS10_SFC']+d['PRR_CON_GDS10_SFC']+d['PRS_CON_GDS10_SFC']+d['PRS_GSP_GDS10_SFC']
-            if 'PRG_GSP_GDS10_SFC' in file_instance.handle.variables.keys(): # Check if graupel is present
-                derived_var+=get_variable(file_instance,'PRG_GSP_GDS10_SFC',get_proj_info)
-            if 'PRH_GSP_GDS10_SFC' in file_instance.handle.variables.keys(): # Check if hail is present
-                derived_var+=get_variable(file_instance,'PRH_GSP_GDS10_SFC',get_proj_info)
-            derived_var.name='PREC_RATE'
-            derived_var.attributes['long_name']='precipitation intensity  [mm/s]'
-        elif varname == 'QV_v': # Water vapour mass density
-            d=get_variables(file_instance,['QV','RHO'],get_proj_info)
-            derived_var=d['QV']*d['RHO']
-            derived_var.name='QV_v'
-            derived_var.attributes['units']='kg/m3'
-            derived_var.attributes['long_name']='Water vapor mass density'
-        elif varname == 'QR_v': # Rain water mass density
-            d=get_variables(file_instance,['QR','RHO'],get_proj_info)
-            derived_var=d['QR']*d['RHO']
-            derived_var.name='QR_v'
-            derived_var.attributes['units']='kg/m3'
-            derived_var.attributes['long_name']='Rain water mass density'
-        elif varname == 'QS_v': # Snow water mass density
-            d=get_variables(file_instance,['QS','RHO'],get_proj_info)
-            derived_var=d['QS']*d['RHO']
-            derived_var.name='QS_v'
-            derived_var.attributes['units']='kg/m3'
-            derived_var.attributes['long_name']='Snow water mass density'
-        elif varname == 'QG_v': # Graupel water mass density
-            d=get_variables(file_instance,['QG','RHO'],get_proj_info)
-            derived_var=d['QG']*d['RHO']
-            derived_var.name='QG_v'
-            derived_var.attributes['units']='kg/m3'
-            derived_var.attributes['long_name']='Graupel water mass density'
-        elif varname == 'QC_v': # Cloud water mass density
-            d=get_variables(file_instance,['QC','RHO'],get_proj_info)
-            derived_var=d['QC']*d['RHO']
-            derived_var.name='QC_v'
-            derived_var.attributes['units']='kg/m3'
-            derived_var.attributes['long_name']='Cloud water mass density'
-        elif varname == 'QI_v': # Ice cloud water mass density
-            d=get_variables(file_instance,['QI','RHO'],get_proj_info)
-            derived_var=d['QI']*d['RHO']
-            derived_var.name='QI_v'
-            derived_var.attributes['units']='kg/m3'
-            derived_var.attributes['long_name']='Ice cloud water mass density'        
-        elif varname == 'QH_v': # Hail water mass density
-            d=get_variables(file_instance,['QH','RHO'],get_proj_info)
-            derived_var=d['QH']*d['RHO']
-            derived_var.name='QH_v'
-            derived_var.attributes['units']='kg/m3'
-            derived_var.attributes['long_name']='Hail water mass density'
-        elif varname == 'QNR_v': # Rain number density
-            d=get_variables(file_instance,['QNR','RHO'],get_proj_info)
-            derived_var=d['QNR']*d['RHO']
-            derived_var.name='QNR_v'
-            derived_var.attributes['units']='m^-3'
-            derived_var.attributes['long_name']='Rain number density'
-        elif varname == 'QNS_v': # Snow number density
-            d=get_variables(file_instance,['QNS','RHO'],get_proj_info)
-            derived_var=d['QNS']*d['RHO']
-            derived_var.name='QNS_v'
-            derived_var.attributes['units']='m^-3'
-            derived_var.attributes['long_name']='Snow number density'
-        elif varname == 'QNG_v': # Graupel number density
-            d=get_variables(file_instance,['QNG','RHO'],get_proj_info)
-            derived_var=d['QNG']*d['RHO']
-            derived_var.name='QNG_v'
-            derived_var.attributes['units']='m^-3'
-            derived_var.attributes['long_name']='Graupel number density'
-        elif varname == 'QNC_v': # Cloud number density
-            d=get_variables(file_instance,['QNC','RHO'],get_proj_info)
-            derived_var=d['QNC']*d['RHO']
-            derived_var.name='QNC_v'
-            derived_var.attributes['units']='m^-3'
-            derived_var.attributes['long_name']='Rain number density' 
-        elif varname == 'QNI_v': # Ice cloud particles number density
-            d=get_variables(file_instance,['QNI','RHO'],get_proj_info)
-            derived_var=d['QNI']*d['RHO']
-            derived_var.name='QNI_v'
-            derived_var.attributes['units']='m^-3'
-            derived_var.attributes['long_name']='Ice cloud particles number density'
-        elif varname == 'QNH_v': # Hail number density
-            d=get_variables(file_instance,['QNH','RHO'],get_proj_info)
-            derived_var=d['QNH']*d['RHO']
-            derived_var.name='QNH_v'
-            derived_var.attributes['units']='m^-3'
-            derived_var.attributes['long_name']='Rain number density'          
-        elif varname == 'LWC': # LIQUID WATER CONTENT
-            d=get_variables(file_instance,['QC','QR'],get_proj_info)
-            derived_var=d['QC']+d['QR']
-            derived_var=derived_var*1E6
-            derived_var.name='LWC'
-            derived_var.attributes['units']='mg/kg'
-            derived_var.attributes['long_name']='Liquid water content'
-        elif varname == 'IWC': # ICE WATER CONTENT
-            d=get_variables(file_instance,['QG','QS','QI'],get_proj_info)
-            derived_var=d['QG']+d['QS']+d['QI']
-            derived_var=derived_var*1E6
-            derived_var.name='IWC'
-            derived_var.attributes['units']='mg/kg'
-            derived_var.attributes['long_name']='Ice water content'
-        elif varname == 'TWC': # TOTAL WATER CONTENT 
-            d=get_variables(file_instance,['QG','QS','QI','QC','QV','QR'],get_proj_info)
-            derived_var=d['QG']+d['QS']+d['QI']+d['QC']+d['QV']+d['QR']
-            derived_var=derived_var*1E6
-            derived_var.name='TWC'
-            derived_var.attributes['long_name']='Total water content'
-            derived_var.attributes['units']='mg/kg'         
-        elif varname == 'RHO': # AIR DENSITY
-            d=get_variables(file_instance,['P','T','QV','QR','QC','QI','QS','QG'],get_proj_info)
-            derived_var=d['P']/(d['T']*dic_csts['cosmo_r_d']*((d['QV']*dic_csts['cosmo_rvd_m_o']-d['QR']-d['QC']-d['QI']
-            -d['QS']-d['QG'])+1.0))
-            derived_var.name='RHO'
-            derived_var.attributes['long_name']='Air density'
-            derived_var.attributes['units']='kg/m3'     
-        elif varname == 'Pw': # Vapor pressure
-            d=get_variables(file_instance,['P','QV'],get_proj_info)
-            derived_var=(d['P']*d['QV'])/(d['QV']*(1-0.6357)+0.6357)
-            derived_var.attributes['long_name']='Vapor pressure'
-            derived_var.attributes['units']='Pa'            
-        elif varname == 'RELHUM': # Vapor pressure
-            d=get_variables(file_instance,['Pw','T'],get_proj_info)
-            esat=610.78*np.exp(17.2693882*(d['T'].data-273.16)/(d['T'].data-35.86)) # TODO
-            derived_var=d['Pw']/esat*100
-            derived_var.attributes['long_name']='Relative humidity'
-            derived_var.attributes['units']='%'          
-        elif varname == 'N': # Refractivity
-            d=get_variables(file_instance,['T','Pw','P'],get_proj_info)
-            derived_var=(77.6/d['T'])*(0.01*d['P']+4810*(0.01*d['Pw'])/d['T'])
-            derived_var.attributes['long_name']='Refractivity'
-            derived_var.attributes['units']='-'     
-        else:
-            print('Could not compute derived variable, please specify a valid variable name')
-    except:
-        print('Could not compute specified derived variable, check if all the necessary variables are in the input file_instance.')        
-    return derived_var 
     
 def get_model_filenames(folder):
     filenames={}
@@ -317,66 +78,7 @@ def get_time_from_COSMO_filename(fname, spinup=12):
     tdelta=datetime.timedelta(days=int(bname[4:6]),hours=int(bname[6:8])-spinup,minutes=int(bname[8:10]),seconds=int(bname[10:12]))
     time=event_date+tdelta
     return time
-
-    
-def get_grib_keys():
-    cur_path=os.path.dirname(os.path.realpath(__file__))
-    f = open(cur_path+'/grib_keys.txt', 'r')
-    dic={}
-    for line in f:
-        line=line.strip('\n')
-        line=line.split(',')
-        dic[line[0]]=line[1]
-    return dic
-    
-
-def get_variable(file_instance, varname, get_proj_info=True):
-    if varname in file_instance.dic_variables.keys():
-        return file_instance.dic_variables[varname]
-    else:
-        print '--------------------------'
-        print 'Reading variable '+varname
-        if varname in DERIVED_VARS:
-            var=get_derived_var(file_instance, varname,get_proj_info)
-        else:
-            varname_checked=check_varname(file_instance, varname)
-            if varname_checked != '':
-                var=data_class.Data_class(file_instance, varname_checked,get_proj_info)
-                print 'Variable was read successfully'
-            else:
-                print 'Variable was not found in file_instance'
-                var=None
-        print '--------------------------' 
-        print ''
-        file_instance.dic_variables[varname]=var
-    return var    
-
-def get_variables(file_instance, list_varnames, get_proj_info=True, shared_heights=False, assign_heights=False, c_file=''):
-    
-    dic_var={}
-    for i,v in enumerate(list_varnames):
-        var=get_variable(file_instance, v, get_proj_info)
-        if assign_heights:
-            if i == 0 or not shared_heights:
-                var.assign_heights(c_file)
-            else: # If shared_heights is true we just copy the heights from the first variables to all others
-                var.attributes['z-levels']=dic_var[list_varnames[0]].attributes['z-levels']
-        dic_var[v]=var
-    return dic_var
-
-def hyb_avg(var):
-    cp=var.copy()
-    if not (var.file.type == 'h' or var.file.type == 'c'):
-        print 'Averaging on hybrid layers only make sense for variables that are on hybrid levels'
-        print 'No p-file_instances or z-file_instances, or horizontal 2D variables'
-        return
-    if var.dim == 3:
-        cp.data=0.5*(var.data[0:-1,:,:] + var.data[1:,:,:])
-    elif var.dim == 2:
-        cp.data=0.5*(var.data[0:-2,:,:] + var.data[1:-1,:,:])
-    cp.coordinates['hyb_levels']=var.coordinates['hyb_levels'][0:-2]
-    return cp
-    
+       
  
 def make_colorbar(fig,orientation='horizontal',label=''):
 
@@ -423,9 +125,25 @@ def move_element(odict, thekey, newpos):
         i += 1
     return odict
     
-def open_file(fname): # Just create a file_instance class
-    return file_class.File_class(fname)
-             
+def piecewise_linear(x,y):
+    interpolator = interp1d(x,y)
+    xs = interpolator.x
+    ys = interpolator.y
+
+    def pointwise(x):
+        if x < xs[0]:
+            return ys[0]+(x-xs[0])*(ys[1]-ys[0])/(xs[1]-xs[0])
+        elif x > xs[-1]:
+            return ys[-1]+(x-xs[-1])*(ys[-1]-ys[-2])/(xs[-1]-xs[-2])
+        else:
+            return interpolator(x)
+
+    def ufunclike(xs):
+        if np.isscalar(xs):
+            xs=[xs]
+        return np.array([pointwise(xi) for xi in xs])
+        
+    return ufunclike            
 
 def overlay(list_vars, var_options=[{},{}], overlay_options={}):
     
@@ -500,52 +218,63 @@ def resize_domain(var, boundaries):
 def savefig(*args, **kwargs):
     plt.savefig(*args, **kwargs)
     try:
-        print 'Triming...command is:'
-        print 'convert -density '+str(kwargs['dpi'])+' '+args[0]+' -trim +repage ' + args[0]
+        print('Triming...command is:')
+        print('convert -density '+str(kwargs['dpi'])+' '+args[0]+' -trim +repage ' + args[0])
         subprocess.call('convert -density '+str(kwargs['dpi'])+' '+args[0]+' -trim +repage ' + args[0],shell=True)
     except:
-        print 'Triming failed, check if imagemagick is installed'
+        print('Triming failed, check if imagemagick is installed')
         pass    
     return
 
 def savevar(list_vars, name='output.nc'):
     try:
-        f = netcdf.netcdf_file_instance(name, 'w')
+        f = netcdf.NetCDFFile(name, 'w')
     except:
-        print 'Could not create or open file_instance '+name
+        raise IOError('Could not create or open file_instance '+name)
         
-    if isinstance(list_vars, data_class.Data_class):
+    if not isinstance(list_vars, list):
         # Only one variable, put it into list
         list_vars=[list_vars]
 
     for var in list_vars:
-        siz=var.data.shape
-        print siz
-        list_dim_names=[]
-        for idx, dim in enumerate(var.coordinates.keys()):
-            if dim + '_idx' not in f.dimensions.keys():
-                f.createDimension(dim + '_idx', siz[idx])
-            list_dim_names.append(dim + '_idx')
-        varhandle=f.createVariable(var.name,'f', tuple(list_dim_names))
-        varhandle[:]=var.data
-        varhandle.coordinates=''
-        for idx, dim in enumerate(var.coordinates.keys()):
-            if dim not in f.variables.keys():
-                if 'lon_2D' in dim:
-                    if dim not in f.variables.keys():
-                        dimhandle=f.createVariable(dim,'f', (dim.replace('lon_2D','lat_2D')+'_idx', dim+'_idx'))
-                elif 'lat_2D' in dim:
-                    if dim not in f.variables.keys():
-                        dimhandle=f.createVariable(dim,'f', (dim+'_idx',dim.replace('lat_2D','lon_2D')+'_idx'))
+        siz = var[:].shape
+        list_dim_names = []
+        for idx,dim in enumerate(var.dimensions):
+            if dim not in f.dimensions.keys():
+                f.createDimension(dim, siz[idx])
+            list_dim_names.append(dim)
+        varhandle = f.createVariable(var.name,'f', tuple(list_dim_names))
+        varhandle[:] = var[:]
+        coordinates = []
+        for coords in var.coordinates.keys():
+            if coords not in f.variables.keys():
+                if 'lon_2D' in coords:
+                    coordname = var.dimensions[-1].replace('y','lon')
+                    handle = f.createVariable(coordname,'f', 
+                           tuple(list_dim_names[-2:]))
+                elif 'lat_2D' in coords:
+                    coordname = var.dimensions[-2].replace('x','lat')
+                    handle = f.createVariable(coordname,'f', 
+                           tuple(list_dim_names[-2:]))
                         
                 else:
-                    dimhandle=f.createVariable(dim,'f', (dim+'_idx',))
-                    
-                dimhandle[:]=var.coordinates[dim]
-            
+                    coordname = list_dim_names[0]
+                    handle = f.createVariable(coordname,'f', tuple([list_dim_names[0]]))
+                coordinates.append(coordname)
+                handle[:] = var.coordinates[coords]
+        
         for attr in var.attributes.keys():
-            setattr(varhandle, attr, var.attributes[attr])
+            if attr not in ['z-levels','domain_2D']:
+                if isinstance(var.attributes[attr],dict):
+                    for key in var.attributes[attr].keys():
+                        setattr(varhandle, key, var.attributes[attr][key])
+                else:
+                    setattr(varhandle, attr, var.attributes[attr])    
+        # Add coordinates attribute
+        print(coordinates)
+        setattr(varhandle, 'coordinates', ' '.join(coordinates[-2:]))
     f.close()
+    
     
 def vert_interp(var, heights):
     heights=np.asarray(heights).astype('float32')
@@ -596,7 +325,6 @@ def vert_interp(var, heights):
             print 'Interpolating a 3-D variable vertically, this might take a while'
             print 'It is recommended to first slice your variable before you interpolate it...'
             if len(heights)==1:
-                
                 interp_data=np.zeros((siz[1], siz[2]))
             else:
                 interp_data=np.zeros((len(heights),siz[1], siz[2]))
