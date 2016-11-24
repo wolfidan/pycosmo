@@ -1,0 +1,6 @@
+constant_files/
+*.pyc
+*.sh
+*~
+*.o
+*.so
