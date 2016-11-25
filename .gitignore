@@ -4,3 +4,5 @@ pycosmo/constant_files/
 *~
 *.o
 build/
+*_wrap.c*
+*.so

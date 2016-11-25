@@ -451,23 +451,23 @@ class DataClass:
                 cfile_name = cfile_names[0]
                 cfile = pycosmo.open_file(cfile_name)
                 print('c-file found in folder: '+cfile_name)
-            else:
-                print('No c-file found in folder, trying to use a standard-one over Switzerland')
-                
-                if 'resolution' in self.attributes.keys():
-                    if self.attributes['resolution'][0] == 0.02 and self.attributes['resolution'][1] == 0.02 : # COSMO-2
-                        cur_path=os.path.dirname(os.path.realpath(__file__))
-                        cfile_name = cur_path+'/constant_files/cosmo2_constant.nc'
-                        cfile = pycosmo.open_file(cfile_name)
-                    elif self.attributes['resolution'][0] == 0.07 and self.attributes['resolution'][1] == 0.07 : # COSMO-7
-                        cfile_name = cur_path+'/constant_files/cosmo7_constant.nc'
-                        cfile = pycosmo.open_file(cfile_name)    
-                    else:
-                        print('No c-file available for this resolution, aborting...')
-                        return
-                else:
-                    print('No resolution attribute found, cannot find corresponding reference c-file...')
-                    return
+#            else:
+#                print('No c-file found in folder, trying to use a standard-one over Switzerland')
+#                
+#                if 'resolution' in self.attributes.keys():
+#                    if self.attributes['resolution'][0] == 0.02 and self.attributes['resolution'][1] == 0.02 : # COSMO-2
+#                        cur_path=os.path.dirname(os.path.realpath(__file__))
+#                        cfile_name = cur_path+'/constant_files/cosmo2_constant.nc'
+#                        cfile = pycosmo.open_file(cfile_name)
+#                    elif self.attributes['resolution'][0] == 0.07 and self.attributes['resolution'][1] == 0.07 : # COSMO-7
+#                        cfile_name = cur_path+'/constant_files/cosmo7_constant.nc'
+#                        cfile = pycosmo.open_file(cfile_name)    
+#                    else:
+#                        print('No c-file available for this resolution, aborting...')
+#                        return
+#                else:
+#                    print('No resolution attribute found, cannot find corresponding reference c-file...')
+#                    return
         else:
               cfile = pycosmo.open_file(cfile_name)
         
