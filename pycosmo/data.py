@@ -296,9 +296,9 @@ class DataClass:
             options['scale']='linear'
         if 'filled' not in options.keys():
             options['filled'] = True
-        if 'plot_altitudes' not in options.keys() or not self.slice_type in \
-            ['lat','lon','latlon']:
-            options['plot_altitudes'] = False
+        if 'alt_coordinates' not in options.keys() or not self.slice_type in \
+            ['lat','lon','latlon','PPI','RHI']:
+            options['alt_coordinates'] = False
         if 'levels' not in options.keys():
             if options['filled']: num_levels=25
             else: num_levels=15
@@ -351,19 +351,25 @@ class DataClass:
                 
             fig['basemap']=m
         else:
-            if options['plot_altitudes']:
+            if options['alt_coordinates']:
                 try:
-                    y = self.attributes['z-levels']
-                    x = self.coordinates[coord_names[1]]
-                    x = np.tile(x, (len(y),1))
-
+                    if self.slice_type in ['lat','lon','latlon']:
+                        y = self.attributes['z-levels']
+                        x = self.coordinates[coord_names[1]]
+                        x = np.tile(x, (len(y),1))
+                    elif self.slice_type == 'PPI':
+                        y = self.attributes['lat_2D']
+                        x = self.attributes['lon_2D']
+                    elif self.slice_type == 'RHI':
+                        x = self.attributes['dist_ground']
+                        y = self.attributes['altitude']
                 except:
                     print('Could not plot on altitude levels, plotting on model'+\
                           ' levels instead...')
                     options['plot_altitudes'] = False
 
                     
-            if not options['plot_altitudes']:
+            if not options['alt_coordinates']:
                 x=self.coordinates[coord_names[1]]
                 y=self.coordinates[coord_names[0]]
             plt.contourf(x,y,mask, levels=[0.0,0.1,1],colors=['white','Grey'])     
@@ -402,8 +408,17 @@ class DataClass:
                     proxy = [plt.Rectangle((0,0),1,1,fc = pc.get_edgecolor()[0]) for pc in CS.collections] 
                 lgd=plt.legend(proxy, utilities.format_ticks(options['levels'],decimals=2),loc='center left', bbox_to_anchor=(1, 0.6), title=options['cbar_title'])
                 ax.add_artist(lgd)
-        if options['plot_altitudes']:
-            plt.ylabel('Altitude [m]')
+        
+        if options['alt_coordinates']:
+            if self.slice_type in ['lat','lon','latlon']:
+                plt.ylabel('Altitude [m]')
+            elif self.slice_type == 'PPI':
+                plt.ylabel('lat [deg]')
+                plt.xlabel('lon [deg]')
+            elif self.slice_type == 'RHI':
+                plt.ylabel('altitude [m]')
+                plt.xlabel('distance [m]')
+
             plt.gca().set_axis_bgcolor('Gray')
             
         fig['cont_handle']=CS

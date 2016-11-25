@@ -100,9 +100,11 @@ def integrate_quad(list_GH_pts):
         for i in list_GH_pts:
             sum_weights+=i.GH_weight
         for i in list_GH_pts:
-            integrated_variables[k] = _nansum_arr(integrated_variables[k],i.values[k]*i.GH_weight/sum_weights)
+            integrated_variables[k] = _nansum_arr(integrated_variables[k],
+                                        i.values[k]*i.GH_weight/sum_weights)
         integrated_variables[k][np.logical_or(mask>1,mask<=-1)] = float('nan')
-        
+        integrated_variables[k] /= sum_weights
+    
     # Get index of central beam
     idx_0=int(num_beams/2)
 

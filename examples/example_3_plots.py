@@ -42,8 +42,11 @@ options['cargs']={"linewidths":1, 'linestyles':'-'} # Other arguments
 that must be given to the actual plotting method (contourf, contour)
 can be specified in a dictionary with a key called 'cargs'
 options['no_colorbar'] = False # IF you want to colorbar
-options['plot_altitudes'] = False # When possible will use real altitudes in 
-vertical axis instead of model levels (for profiles only)
+options['alt_coordinates'] = False # When possible will use an alternative
+coordinate system for plotting: for profiles (lat, lon, latlon), this will plot
+altitudes instead of hybrid levels in the vertical, for PPI scans  this will
+plot the data in cartesian coordinates (lat/lon), for RHI scans this will plot
+the data in cartesian coordinates (distance and altitude)
 '''
 
 plt.figure()
@@ -196,4 +199,4 @@ overlay_options['labels']=['QR [mg/kg]]','QG [mg/kg]', 'QC [mg/kg]', 'QS [mg/kg]
 overlay_options['label_position']='top' # Can be top, bottom, right or left
 pc.overlay([slice_QR,slice_QG, slice_QC, slice_QS],[options, options2, options3, options4], overlay_options) # You can still change everything afterwards
 plt.title('Specific water contents at 8 deg. lon.')
-savefig('Q_overlay.png',dpi=200)
+pc.savefig('Q_overlay.png',dpi=200)

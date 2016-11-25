@@ -52,7 +52,7 @@ T_prof = pc.extract(T,'lat',47)
 '''
 Plot the slice
 '''
-T_prof.plot(options={'plot_altitudes':True}) # More info on plotting options of pycosmo in example 3
+T_prof.plot(options={'alt_coordinates':True}) # More info on plotting options of pycosmo in example 3
 
 
 '''
@@ -73,9 +73,9 @@ profiles = pc.extract([T,P],'latlon',coords_prof) # You can extract several vari
 
 plt.figure()
 plt.subplot(2,1,1)
-profiles[0].plot(options={'plot_altitudes':True})
+profiles[0].plot(options={'alt_coordinates':True})
 plt.subplot(2,1,2)
-profiles[1].plot(options={'plot_altitudes':True})
+profiles[1].plot(options={'alt_coordinates':True})
 
 #####################
 # Radar simulation
@@ -125,7 +125,24 @@ ppi_U = pc.extract(U,'PPI',options_PPI)
 plt.figure()
 ppi_U.plot()
 
+plt.figure()
 
+'''
+Note that the coordinates of the PPI are 'range' and 'azimuth', however the lat, lon
+distance at ground and height of every gate are also stored in the attributes
+('lat_2D', 'lon_2D', 'altitude','dist_ground')
+which makes it possible to plot the data in Cartesian coordinates
+'''
+y = ppi_U.attributes['lat_2D']
+x = ppi_U.attributes['lon_2D']
+plt.figure()
+plt.contourf(x,y,ppi_U[:],levels=np.arange(0,15,1))
+plt.xlabel('lat')
+plt.ylabel('lon')
+
+# OR even simpler with
+plt.figure()
+ppi_U.plot(options={'alt_coordinates':True})
 
 '''
 RHI scans are supported as well, the inputs are basically the same as for PPI
@@ -136,14 +153,32 @@ beamwidth
 
 options_RHI = {'beamwidth':1.5,'azimuth':5,
            'maxrange':15000,'rresolution':100,
-           'rpos':[46.48,6.58,700],'npts_quad':[1,1],
+           'rpos':[46.48,6.58,700],'npts_quad':[3,3],
            'refraction_method':1}
            
-rhi_U = pc.extract(T,'RHI',options_RHI) 
+rhi_U = pc.extract(U,'RHI',options_RHI) 
 
 plt.figure()
 rhi_U.plot(options={})
 
+
+'''
+Note that the coordinates of the RHI are 'range' and 'elevation', however the lat, lon
+altitude and distance at ground of every gate are also stored in the attributes
+('lat_2D', 'lon_2D', 'altitude','dist_ground')
+which makes it possible to plot the data in Cartesian coordinates
+'''
+x = rhi_U.attributes['dist_ground']
+y = rhi_U.attributes['altitude']
+
+plt.figure()
+plt.contourf(x,y,rhi_U[:],levels=np.arange(0,25,1),extend='both')
+plt.xlabel('range')
+plt.ylabel('altitude')
+
+# OR even simpler with
+plt.figure()
+rhi_U.plot(options={'alt_coordinates':True})
 
 #####################
 # Vertical interpolation
@@ -161,3 +196,4 @@ T_alt_levels = pc.vert_interp(T,alt_lvls)
 print(T_alt_levels[:].shape) # shape is 10, 147, 147 as expected
 print(T_alt_levels.coordinates['heights']) # The new coordinate "heights" replaces
 # the hyb_levels coordinate
+

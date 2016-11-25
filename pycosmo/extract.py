@@ -422,13 +422,13 @@ def extract(variables, slice_type, idx, parallel = False):
         except:
             print("Could not read 'azimuth' field in input dict."+\
                   'Using default one: np.arange(0,360,beamwidth_3dB)')
-            azimuths = np.arange(0,180+beamwidth_3dB,beamwidth_3dB)
+            azimuths = np.arange(0,360+beamwidth_3dB,beamwidth_3dB)
         
         try:
             npts_quad = [int(i) for i in idx['npts_quad']]
         except:
             print("Could not read 'npts_quad' field in input dict."+\
-                  'Using default one: [5,5]')
+                  'Using default one: [5,3]')
             npts_quad = [5,5]
 
         try:
@@ -483,7 +483,7 @@ def extract(variables, slice_type, idx, parallel = False):
         lons_scan =  np.zeros((len(rangevec),len(azimuths)))
         lats_scan = np.zeros((len(rangevec),len(azimuths)))
         heights_scan = np.zeros((len(rangevec),len(azimuths)))
-        
+        dist_ground = np.zeros((len(rangevec),len(azimuths)))
         
         # Main loop
         for radial,az in enumerate(azimuths): # Loop on all radials
@@ -496,9 +496,9 @@ def extract(variables, slice_type, idx, parallel = False):
                     # Get radar gate coordinates in WGS84
                     lons_radial = []
                     lats_radial = []
-                    for r in rangevec:
-                        # Note that pyproj uses lon, lat whereas I used lat, lon
-                        lon,lat,ang = g.fwd(rpos[1],rpos[0], pt_hor + az, r)  
+                    for s_gate in s:
+                        # Note that pyproj uses lon, lat whereas I use lat, lon
+                        lon,lat,ang = g.fwd(rpos[1],rpos[0], pt_hor + az, s_gate)  
                         lons_radial.append(lon)
                         lats_radial.append(lat)
 
@@ -544,6 +544,7 @@ def extract(variables, slice_type, idx, parallel = False):
             lats_scan[:,radial] = scan.lats_profile
             lons_scan[:,radial] = scan.lons_profile
             heights_scan[:,radial] = scan.heights_profile
+            dist_ground[:,radial] = scan.dist_profile
         
         # Final bookkeeping
         for sli in slices:      
@@ -551,11 +552,12 @@ def extract(variables, slice_type, idx, parallel = False):
             sli.coordinates.pop('lon_2D',None)
             sli.coordinates.pop('lat_2D',None)
             sli.coordinates['range'] = rangevec
-            sli.coordinates['azimuths'] = azimuths
-            sli.attributes['lon_2D_PPI'] = lons_scan
-            sli.attributes['lat_2D_PPI'] = lats_scan
+            sli.coordinates['azimuth'] = azimuths
+            sli.attributes['lon_2D'] = lons_scan
+            sli.attributes['lat_2D'] = lats_scan
             sli.attributes['altitude'] = heights_scan
             sli.attributes['elevation'] = elevation
+            sli.attributes['dist_ground'] = dist_ground
             sli.name+='_PPI_SLICE'
             sli.coordinates.pop('hyb_levels',None) # not needed anymore
             sli.attributes.pop('domain_2D',None) # not needed anymore 
@@ -654,6 +656,7 @@ def extract(variables, slice_type, idx, parallel = False):
             
         lons_scan =  np.zeros((len(rangevec),len(elevations)))
         lats_scan = np.zeros((len(rangevec),len(elevations)))
+        dist_ground = np.zeros((len(rangevec),len(elevations)))
         heights_scan = np.zeros((len(rangevec),len(elevations)))
         
         
@@ -668,16 +671,17 @@ def extract(variables, slice_type, idx, parallel = False):
                     # Get radar gate coordinates in WGS84
                     lons_radial = []
                     lats_radial = []
-                    for r in rangevec:
-                        # Note that pyproj uses lon, lat whereas I used lat, lon
-                        lon,lat,ang = g.fwd(rpos[1],rpos[0], pt_hor + azimuth, r)  
+                    for s_gate in s:
+                        # Note that pyproj uses lon, lat whereas I use lat, lon
+                        lon,lat,ang = g.fwd(rpos[1],rpos[0], pt_hor + azimuth,
+                                            s_gate)  
                         lons_radial.append(lon)
                         lats_radial.append(lat)
 
                     # Transform radar gate coordinates into local COSMO coordinates
                     coords_rad_loc= WGS_to_COSMO((lats_radial,lons_radial),
-                                          [proj_COSMO['Latitude_of_southern_pole'],\
-                                           proj_COSMO['Longitude_of_southern_pole']])  
+                                  [proj_COSMO['Latitude_of_southern_pole'],\
+                                   proj_COSMO['Longitude_of_southern_pole']])  
 
                     # Check if all points are within COSMO domain
                     
@@ -716,16 +720,18 @@ def extract(variables, slice_type, idx, parallel = False):
             lats_scan[:,radial] = scan.lats_profile
             lons_scan[:,radial] = scan.lons_profile
             heights_scan[:,radial] = scan.heights_profile
-        
+            dist_ground[:,radial] = scan.dist_profile
+            
         # Final bookkeeping
         for sli in slices:      
             sli.dim = sli.dim - 1
             sli.coordinates.pop('lon_2D',None)
             sli.coordinates.pop('lat_2D',None)
             sli.coordinates['range'] = rangevec
-            sli.coordinates['elevations'] = elevations
-            sli.attributes['lon_2D_PPI'] = lons_scan
-            sli.attributes['lat_2D_PPI'] = lats_scan
+            sli.coordinates['elevation'] = elevations
+            sli.attributes['dist_ground'] = dist_ground
+            sli.attributes['lon_2D'] = lons_scan
+            sli.attributes['lat_2D'] = lats_scan
             sli.attributes['altitude'] = heights_scan
             sli.attributes['azimuth'] = azimuth
             sli.name+='_RHI_SLICE'
