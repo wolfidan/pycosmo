@@ -121,8 +121,11 @@ class FileClass(object):
                 
         return varname_checked
     
-    def get_variable(self, variables, get_proj_info=True, shared_heights=False, 
-                     assign_heights=False, cfile_name=''):
+    def get_variable(self, variables, get_proj_info=True, assign_heights=False,
+                     shared_heights=False, cfile_name=''):
+        
+        if shared_heights:
+            assign_heights = True
         # Create dictionary of options
         import_opts = {'get_proj_info':get_proj_info,\
                        'shared_heights':shared_heights,\
