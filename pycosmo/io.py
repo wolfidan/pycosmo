@@ -162,12 +162,12 @@ class FileClass(object):
             self.dic_variables[variables] = var
             return var 
 
-def check_if_variables_in_file(self, varnames):
-    for var in varnames:
-        varname_checked = self.check_varname(var)
-        if varname_checked == '':
-            return False
-    return True
+    def check_if_variables_in_file(self, varnames):
+        for var in varnames:
+            varname_checked = self.check_varname(var)
+            if varname_checked == '':
+                return False
+        return True
        
             
 if __name__ == '__main__':
