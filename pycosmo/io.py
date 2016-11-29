@@ -123,7 +123,7 @@ class FileClass(object):
     
     def get_variable(self, variables, get_proj_info=True, assign_heights=False,
                      shared_heights=False, cfile_name=''):
-        
+            
         if shared_heights:
             assign_heights = True
         # Create dictionary of options
@@ -148,6 +148,8 @@ class FileClass(object):
         else:
             print('--------------------------')
             print('Reading variable '+variables)
+            if variables in self.dic_variables.keys():
+                return self.dic_variables[variables]
             if variables in DERIVED_VARS:
                 var = get_derived_var(self,variables,import_opts)
             else:
@@ -156,6 +158,7 @@ class FileClass(object):
                     var = d.DataClass(self, varname_checked)
                     if import_opts['assign_heights']:
                         var.assign_heights(cfile_name)
+                    self.dic_variables[var] = var
                     print 'Variable was read successfully'
                 else:
                     print 'Variable was not found in file_instance'
