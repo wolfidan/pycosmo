@@ -94,7 +94,7 @@ colors are then linearly or logaritmically interpolated between levels
 
 options2['cmap']= pc.get_colormap([(216,179,101),(245,245,245),(90,180,172)],log=False) 
 options2['levels']= np.arange(0,5,0.2) # Define levels
-options2['plot_altitudes']=True # Define levels
+options2['alt_coordinates']=True 
 
 plt.figure()
 pc.plot(QV_prof,options2) #  Areas where topo > level are shown in light grey
@@ -175,7 +175,7 @@ options['filled']=False # Can be either true (default) or false
 options['scale']='linear' # Can be linear or log (useful for precip...)
 options['cargs']={"linewidths":1, 'linestyles':'-'} # Other arguments that must be given to the actual plotting method (contourf, contour) can be specified in a dictionary with a key called 'cargs'
 options['no_colorbar']=False # Will be False by default
-options['plot_altitudes'] = True
+options['alt_coordinates'] = True
 
 # Now we create options for a second variable
 options2=dict(options) 
