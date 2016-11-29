@@ -8,7 +8,7 @@ import pyproj as pyproj
 import numpy as np
 import scipy.spatial as spatial
 
-from pycosmo.utilities import binary_search, WGS_to_COSMO
+from pycosmo.utilities import WGS_to_COSMO
 from pycosmo.beam_tracing import _Beam, refraction_sh, quad_pts_weights, integrate_quad
 from pycosmo.c.radar_interp_c import get_all_radar_pts
 
@@ -793,28 +793,3 @@ def coords_profile(start, stop, step=-1, npts=-1):
     profile_instance[:,[0, 1]] = profile_instance[:,[1, 0]]
     
     return profile_instance
-
-    
-if __name__=='__main__':
-    import pycosmo as pc
-    import matplotlib.pyplot as plt
-    # Open a file, you have to specify either grib (.grb, .grib) or netcdf (.nc, .cdf) files as input, if no suffix --> program will assume it is grib
-    file_h = pc.open_file('/ltedata/COSMO/Validation_operator/case2014110500_ONEMOM/lfsf00135500')
-#    print file_nc # Shows all variables contained in file
-#    print file_nc.attributes # Global attributes
-#    
-    # Get cloud top
-    W=file_h.get_variable('W')
-
-    
-    cfile = '/ltedata/COSMO/Validation_operator/case2014110500_ONEMOM/lfsf00000000c'
-    P=file_h.get_variable('P',assign_heights=True,cfile_name=cfile)
-    
-    W.assign_heights(cfile_name = cfile)
-#    profile = coords_profile([45,8],[46,10],npts= 100)
-#    T_slice = extract([T,P],'latlon',profile)
-    
-    options = {'beamwidth':1.5,'azimuth':5,'maxrange':15000,'rresolution':100,'rpos':[46.48,6.58,700],'npts_quad':[3,3],'refraction_method':2}
-    T_slice = extract([W],'RHI',options)
-    
-    T_slice.plot()
