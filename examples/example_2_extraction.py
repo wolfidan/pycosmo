@@ -52,7 +52,7 @@ T_prof = pc.extract(T,'lat',47)
 '''
 Plot the slice
 '''
-T_prof.plot(options={'alt_coordinates':True}) # More info on plotting options of pycosmo in example 3
+pc.plot(T_prof,options={'alt_coordinates':True}) # More info on plotting options of pycosmo in example 3
 
 
 '''
@@ -73,9 +73,9 @@ profiles = pc.extract([T,P],'latlon',coords_prof) # You can extract several vari
 
 plt.figure()
 plt.subplot(2,1,1)
-profiles[0].plot(options={'alt_coordinates':True})
+pc.plot(profiles[0],options={'alt_coordinates':True})
 plt.subplot(2,1,2)
-profiles[1].plot(options={'alt_coordinates':True})
+pc.plot(profiles[1],options={'alt_coordinates':True})
 
 #####################
 # Radar simulation
@@ -123,7 +123,7 @@ options_PPI = {'beamwidth':1.5,'elevation':5,
 ppi_U = pc.extract(U,'PPI',options_PPI) 
 
 plt.figure()
-ppi_U.plot()
+pc.plot(ppi_U)
 
 plt.figure()
 
@@ -142,7 +142,7 @@ plt.ylabel('lon')
 
 # OR even simpler with
 plt.figure()
-ppi_U.plot(options={'alt_coordinates':True})
+pc.plot(ppi_U,options={'alt_coordinates':True})
 
 '''
 RHI scans are supported as well, the inputs are basically the same as for PPI
@@ -159,7 +159,7 @@ options_RHI = {'beamwidth':1.5,'azimuth':5,
 rhi_U = pc.extract(U,'RHI',options_RHI) 
 
 plt.figure()
-rhi_U.plot(options={})
+pc.plot(rhi_U,options={})
 
 
 '''
@@ -178,7 +178,7 @@ plt.ylabel('altitude')
 
 # OR even simpler with
 plt.figure()
-rhi_U.plot(options={'alt_coordinates':True})
+pc.plot(rhi_U,options={'alt_coordinates':True})
 
 #####################
 # Vertical interpolation

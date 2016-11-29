@@ -59,7 +59,7 @@ to load matplotlib colormaps or to create custom ones by specifying a list of
 colors
 '''
 options['levels'] = np.arange(260,270,1)
-plot = T_3000.plot(options) # Areas where topo > level are shown in grey
+plot = pc.plot(T_3000,options) # Areas where topo > level are shown in grey
     
 '''
 Note that you can still change things on the plot after calling .plot()
@@ -97,7 +97,7 @@ options2['levels']= np.arange(0,5,0.2) # Define levels
 options2['plot_altitudes']=True # Define levels
 
 plt.figure()
-QV_prof.plot(options2) #  Areas where topo > level are shown in light grey
+pc.plot(QV_prof,options2) #  Areas where topo > level are shown in light grey
 
 
 #####################
@@ -114,17 +114,17 @@ options['scale']='log' # Can be 'log' or 'linear' (default)
 options['filled']=True # Can be either true (default) or false
 options['no_colorbar']=True
 plt.subplot(2,2,1)
-fig=precip.plot(options)
-plt.title('Case 1')
+fig = pc.plot(precip,options)
+plt.title('Plot 1')
 plt.subplot(2,2,2)
-fig=precip.plot(options)
-plt.title('Case 2')
+fig = pc.plot(precip,options)
+plt.title('Plot 2')
 plt.subplot(2,2,3)
-fig=precip.plot(options)
-plt.title('Case 3')
+fig = pc.plot(precip,options)
+plt.title('Plot 3')
 plt.subplot(2,2,4)
-fig=precip.plot(options)    
-plt.title('Case 4')
+fig = pc.plot(precip,options)  
+plt.title('Plot 4')
 cbar= pc.make_colorbar(fig, orientation='horizontal', label='[mm]')
 plt.suptitle('Panels of precipitation accumulations [mm]') # Overall title
 
@@ -169,7 +169,7 @@ slice_QC = pc.extract(QC_mg,'lon',8)
 slice_QS = pc.extract(QS_mg,'lon',8) 
     
 options={} # Now that you do not have to specify all (or even any) of these keys!
-options['cmap']=pc.get_colormap('Greens') # You can specify a color map, the get_colormap function can help you
+options['cmap'] = pc.get_colormap('Greens') # You can specify a color map, the get_colormap function can help you
 options['levels']=[0.2,0.5,1,2,5] # Define contour levels
 options['filled']=False # Can be either true (default) or false
 options['scale']='linear' # Can be linear or log (useful for precip...)
@@ -197,6 +197,6 @@ plt.figure(figsize=[20,20]) # Create plot handle as you would usually
 overlay_options={}
 overlay_options['labels']=['QR [mg/kg]]','QG [mg/kg]', 'QC [mg/kg]', 'QS [mg/kg]']
 overlay_options['label_position']='top' # Can be top, bottom, right or left
-pc.overlay([slice_QR,slice_QG, slice_QC, slice_QS],[options, options2, options3, options4], overlay_options) # You can still change everything afterwards
+pc.plot([slice_QR,slice_QG, slice_QC, slice_QS],[options, options2, options3, options4], overlay_options = overlay_options) # You can still change everything afterwards
 plt.title('Specific water contents at 8 deg. lon.')
 pc.savefig('Q_overlay.png',dpi=200)

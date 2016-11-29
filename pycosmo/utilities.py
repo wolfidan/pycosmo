@@ -10,7 +10,6 @@ from scipy.interpolate import interp1d
 from scipy.io import netcdf
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import subprocess
 import glob, os
 import re
@@ -35,16 +34,7 @@ def binary_search(vec, val):
         elif midval > val: 
             hi = mid
     return -1
-    
-    
-def format_ticks(labels,decimals=2):
-    labels_f=labels
-    for idx, val in enumerate(labels):
-        if int(val) == val:  labels_f[idx]=val
-        else: labels_f[idx]=round(val,decimals)
-    return labels_f    
-
-    
+        
 def get_model_filenames(folder):
     filenames={}
     filenames['c']=[]
@@ -78,43 +68,7 @@ def get_time_from_COSMO_filename(fname, spinup=12):
     tdelta=datetime.timedelta(days=int(bname[4:6]),hours=int(bname[6:8])-spinup,minutes=int(bname[8:10]),seconds=int(bname[10:12]))
     time=event_date+tdelta
     return time
-       
- 
-def make_colorbar(fig,orientation='horizontal',label=''):
-
-#    plt.subplots_adjust(left=0.2, right=0.8, top=0.8, bottom=0.2)
-    if orientation == 'horizontal':
-        cbar_ax = fig['fig_handle'].add_axes([0.2, 0,0.6,1])
-        axins = inset_axes(cbar_ax,
-               width="100%", # width = 10% of parent_bbox width
-               height="5%", # height : 50%
-               loc=10,
-               bbox_to_anchor=(0, -0.01, 1 , 0.15),
-               bbox_transform=cbar_ax.transAxes,
-               borderpad=0,
-               )
-    else:
-        cbar_ax = fig['fig_handle'].add_axes([0, 0.2,1,0.6])
-        axins = inset_axes(cbar_ax,
-               width="5%", # width = 10% of parent_bbox width
-               height="100%", # height : 50%
-               loc=6,
-               bbox_to_anchor=(1.01, 0, 0.15, 1),
-               bbox_transform=cbar_ax.transAxes,
-               borderpad=0,
-               )
-    cbar_ax.get_xaxis().tick_bottom()
-    cbar_ax.axes.get_yaxis().set_visible(False)
-    cbar_ax.axes.get_xaxis().set_visible(False)
-    cbar_ax.set_frame_on(False)       
-    
-    cbar=plt.colorbar(cax=axins, orientation=orientation,label=label)
-
-    levels = fig['cont_handle'].levels
-    cbar.set_ticks(levels)
-    cbar.set_ticklabels(format_ticks(levels,decimals=2))
-    return cbar
-    
+           
     
 def move_element(odict, thekey, newpos):
     odict[thekey] = odict.pop(thekey)
@@ -145,45 +99,6 @@ def piecewise_linear(x,y):
         
     return ufunclike            
 
-def overlay(list_vars, var_options=[{},{}], overlay_options={}):
-    
-    overlay_options_keys=overlay_options.keys()
-
-    if 'labels' not in overlay_options_keys:
-        overlay_options['labels']=[var.name for var in list_vars]
-    if 'label_position' not in overlay_options_keys:
-        overlay_options['label_position']='right'
-   
-    plt.hold(False)
-    n_vars=len(list_vars)
-    offsets=np.linspace(0.9,0.1,n_vars)
-    basemap=''
-    for idx, var in enumerate(list_vars):
-        plt.hold(True)
-        opt = var_options[idx]
-        opt['no_colorbar'] = True 
-        fig = var.plot(var_options[idx], basemap)
-        ax = plt.gca()
-        box = ax.get_position()
-        
-        for pc in fig['cont_handle'].collections:
-                proxy = [plt.Rectangle((0,0),1,1,fc = pc.get_edgecolor()[0]) for pc in fig['cont_handle'].collections] 
-        
-        if overlay_options['label_position'] == 'right':
-            ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-            lgd=plt.legend(proxy, format_ticks(opt['levels'],decimals=2),loc='center left', bbox_to_anchor=(1, offsets[idx]), title=overlay_options['labels'][idx])
-        elif overlay_options['label_position'] == 'left':
-            ax.set_position([box.x0, box.y0, box.width*0.8, box.height])
-            lgd=plt.legend(proxy, format_ticks(opt['levels'],decimals=2),loc='center right', bbox_to_anchor=(-0.05, offsets[idx]), title=overlay_options['labels'][idx])
-        elif overlay_options['label_position'] == 'top':
-            ax.set_position([box.x0, box.y0, box.width, box.height*0.8])
-            lgd=plt.legend(proxy, format_ticks(opt['levels'],decimals=2),loc='lower center', bbox_to_anchor=(offsets[idx],1.05), title=overlay_options['labels'][idx])
-        elif overlay_options['label_position'] == 'bottom':
-            ax.set_position([box.x0, box.y0+0.05*box.height, box.width, box.height*0.8])
-            lgd=plt.legend(proxy, format_ticks(opt['levels'],decimals=2),loc='upper center', bbox_to_anchor=(offsets[idx],-0.05), title=overlay_options['labels'][idx])                        
-        ax.add_artist(lgd)
-    return fig
-       
 def resize_domain(var, boundaries):
     # Boundaries format are [[lower_left_lat, lower_left_lon],[upper_right_lat, upper_right_lon]]
     if 'lat_2D' not in var.coordinates.keys() or 'lon_2D' not in var.coordinates.keys():
@@ -329,7 +244,6 @@ def vert_interp(var, heights):
                 interp_data=np.zeros((len(heights),siz[1], siz[2]))
             for i in range(0, siz[1]):
                 for j in range(0,siz[2]): 
-    #                f=interp.interp1d(var.attributes['z-levels'][::-1,i,j],var.data[::-1,i,j], bounds_error=False, assume_sorted=True)
                     vert_col=var.attributes['z-levels'][:,i,j]
                     interp_column=interp1_c.interp1(len(heights), vert_col,var.data[:,i,j],heights)[1][:]    
                     interp_column[heights<vert_col[-1]]=float('nan')

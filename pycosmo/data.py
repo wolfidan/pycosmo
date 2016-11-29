@@ -5,27 +5,13 @@ Created on Mon Apr 20 14:59:47 2015
 @author: wolfensb
 """
 import pycosmo
-import pycosmo.utilities as utilities
 
 import numpy as np
 from collections import OrderedDict
 import copy
-from colormaps import get_colormap
 import glob, os
-from matplotlib.colors import LogNorm
-import matplotlib.pyplot as plt
 import datetime
 import warnings
-
-try:
-    from mpl_toolkits.basemap import Basemap
-    NO_BASEMAP=False
-except:
-    NO_BASEMAP=True
-
-
-
-BASEMAPS={} # Dictionary of basemaps
 
 class DataClass:
     # This is just a small class that contains the content of a variable, to facilitate manipulation of data.
@@ -287,180 +273,6 @@ class DataClass:
             else: string+='   '+atr+' : "'+str(self.attributes[atr])+'"\n'
         return string
 
-        
-    def plot(self, options={},basemap=''):
-
-        fig={} # The output
-        
-        if self.dim == 3:
-            print('No 3D plotting functions are implemented yet...sorry')
-            print('Returning empty handle')
-            return
-
-        if 'cmap' not in options.keys():
-            options['cmap']=get_colormap('jet')
-        if 'scale' not in options.keys():
-            options['scale']='linear'
-        if 'filled' not in options.keys():
-            options['filled'] = True
-        if 'alt_coordinates' not in options.keys() or not self.slice_type in \
-            ['lat','lon','latlon','PPI','RHI']:
-            options['alt_coordinates'] = False
-        if 'levels' not in options.keys():
-            if options['filled']: num_levels=25
-            else: num_levels=15
-            if options['scale']=='log':
-                options['levels']=np.logspace(np.nanmin(self[:].ravel()),
-                                    np.nanmax(self[:].ravel()),num_levels)
-            else:
-                options['levels']=np.linspace(np.nanmin(self[:].ravel()), 
-                                    np.nanmax(self[:].ravel()),num_levels)
-        if 'no_colorbar' not in options.keys():
-            options['no_colorbar']=False
-        if 'cargs' not in options.keys():
-            options['cargs']={}
-        if 'cbar_title' not in options.keys():
-            options['cbar_title']= self.attributes['units'] 
-
-        
-        coord_names=self.coordinates.keys()
-        if 'lat_2D' in coord_names and 'lon_2D' in coord_names and not NO_BASEMAP:
-            spatial=True
-        else: spatial=False
-
-        mask = np.isnan(self.data)
-
-        if spatial:
-            m = self.get_basemap(basemap = basemap)
-                
-            x, y = m(self.coordinates['lon_2D'], self.coordinates['lat_2D']) # compute map proj coordinates
-            
-            m.contourf(x,y,mask,levels=[0.0,0.1,1],colors=['white','Grey'])
-            if options['filled']:
-                if options['scale'] == 'log':
-                    vmin=min(options['levels'])
-                    vmax=max(options['levels'])
-                    data_no_zero=self.data
-                    data_no_zero[data_no_zero<vmin]=0.00000001 # Hack to use log scale (won't be plotted)
-                    CS = m.contourf(x,y,self.data, cmap=options['cmap'], 
-                                  levels=options['levels'], vmin=vmin, vmax=vmax,
-                                  norm=LogNorm(vmin=vmin, vmax=vmax),**options['cargs'])
-                else:
-                    CS=m.contourf(x,y,self.data, cmap=options['cmap'],levels=options['levels'],extend='max',  
-                                  vmin=min(options['levels']),**options['cargs'])
-            else:
-                   
-                mask = mask.astype(float)
-                CS=m.contour(x,y,self.data, cmap=options['cmap'], 
-                             levels=options['levels'],extend='max',
-                             vmin=min(options['levels']),**options['cargs'])
-                plt.clabel(CS, inline=1, fontsize=9)
-                
-            fig['basemap']=m
-        else:
-            if options['alt_coordinates']:
-                try:
-                    if self.slice_type in ['lat','lon','latlon']:
-                        y = self.attributes['z-levels']
-                        x = self.coordinates[coord_names[1]]
-                        x = np.tile(x, (len(y),1))
-                    elif self.slice_type == 'PPI':
-                        y = self.attributes['lat_2D']
-                        x = self.attributes['lon_2D']
-                    elif self.slice_type == 'RHI':
-                        x = self.attributes['dist_ground']
-                        y = self.attributes['altitude']
-                except:
-                    print('Could not plot on altitude levels, plotting on model'+\
-                          ' levels instead...')
-                    options['plot_altitudes'] = False
-
-                    
-            if not options['alt_coordinates']:
-                x=self.coordinates[coord_names[1]]
-                y=self.coordinates[coord_names[0]]
-            plt.contourf(x,y,mask, levels=[0.0,0.1,1],colors=['white','Grey'])     
-            if options['filled']:
-                if options['scale'] == 'log':
-                     vmin=min(options['levels'])
-                     vmax=max(options['levels'])
-                     data_no_zero=self.data
-                     data_no_zero[data_no_zero<vmin]=0.00000001 # Hack to use log scale (won't be plotted)
-                     
-                     CS=plt.contourf(x,y,self.data, cmap=options['cmap'],
-                                     levels=options['levels'], vmin=vmin,
-                                     vmax=vmax, norm=LogNorm(vmin=vmin, 
-                                     vmax=vmax),**options['cargs'])
-                else:
-                     CS=plt.contourf(x,y,self.data, cmap=options['cmap'], levels=options['levels'], extend='max',vmin=min(options['levels']),**options['cargs'])
-            else:
-                 mask=mask.astype(float)
-                 CS=plt.contour(x,y,self.data, cmap=options['cmap'], levels=options['levels'],extend='max', vmin=min(options['levels']),**options['cargs'])
-                 plt.clabel(CS, inline=1, fontsize=9)
-                 plt.xlabel(coord_names[1])
-                 plt.ylabel(coord_names[0])
-
-        plt.title(self.attributes['long_name'].capitalize()+' ['+self.attributes['units']+']')
-       
-        if not options['no_colorbar']:
-            if options['filled']:
-                cbar=plt.colorbar(fraction=0.046, pad=0.04, label=options['cbar_title'])
-                cbar.set_ticks(options['levels'])
-                cbar.set_ticklabels(utilities.format_ticks(options['levels'],decimals=2))
-            else:
-                ax=plt.gca()
-                box = ax.get_position()
-                ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-                for pc in CS.collections:
-                    proxy = [plt.Rectangle((0,0),1,1,fc = pc.get_edgecolor()[0]) for pc in CS.collections] 
-                lgd=plt.legend(proxy, utilities.format_ticks(options['levels'],decimals=2),loc='center left', bbox_to_anchor=(1, 0.6), title=options['cbar_title'])
-                ax.add_artist(lgd)
-        
-        if options['alt_coordinates']:
-            if self.slice_type in ['lat','lon','latlon']:
-                plt.ylabel('Altitude [m]')
-            elif self.slice_type == 'PPI':
-                plt.ylabel('lat [deg]')
-                plt.xlabel('lon [deg]')
-            elif self.slice_type == 'RHI':
-                plt.ylabel('altitude [m]')
-                plt.xlabel('distance [m]')
-
-            plt.gca().set_axis_bgcolor('Gray')
-            
-        fig['cont_handle']=CS
-        fig['fig_handle']=plt.gcf()
-        del options
-       
-        return fig
-
-
-    def get_basemap(self, basemap = ''):
-        domain=self.attributes['domain_2D']
-        domain_str=str(domain)
-        if domain_str in BASEMAPS.keys():
-            basemap = BASEMAPS[domain_str]
-        elif basemap == '':
-            basemap = Basemap(projection='merc',
-                              lon_0=0.5*(domain[0][1]+domain[1][1]),
-                              lat_0=0.5*(domain[0][0]+domain[1][0]),\
-            llcrnrlat=domain[0][0],urcrnrlat=domain[1][0],\
-            llcrnrlon=domain[0][1],urcrnrlon=domain[1][1],\
-            rsphere=6371200.,resolution='h',area_thresh=10000)
-            BASEMAPS[domain_str] = basemap
-             
-        basemap.drawcoastlines()
-        basemap.drawstates()
-        basemap.drawcountries()
-    
-        # draw parallels.
-        parallels = np.arange(int(0.8*domain[0][0]),int(1.2*domain[1][0]),1)
-        basemap.drawparallels(parallels,labels=[1,0,0,0],fontsize=10)
-        # draw meridians
-        meridians = np.arange(int(0.8*domain[0][1]),int(1.2*domain[1][1]),1)
-        basemap.drawmeridians(meridians,labels=[0,0,0,1],fontsize=10)
-            
-        return basemap
     
     def assign_heights(self, cfile_name=''):
         # The user can optionally specify a c-file that contains the constant parameters of the simulation (altitude, topography)
@@ -473,23 +285,6 @@ class DataClass:
                 cfile_name = cfile_names[0]
                 cfile = pycosmo.open_file(cfile_name)
                 print('c-file found in folder: '+cfile_name)
-#            else:
-#                print('No c-file found in folder, trying to use a standard-one over Switzerland')
-#                
-#                if 'resolution' in self.attributes.keys():
-#                    if self.attributes['resolution'][0] == 0.02 and self.attributes['resolution'][1] == 0.02 : # COSMO-2
-#                        cur_path=os.path.dirname(os.path.realpath(__file__))
-#                        cfile_name = cur_path+'/constant_files/cosmo2_constant.nc'
-#                        cfile = pycosmo.open_file(cfile_name)
-#                    elif self.attributes['resolution'][0] == 0.07 and self.attributes['resolution'][1] == 0.07 : # COSMO-7
-#                        cfile_name = cur_path+'/constant_files/cosmo7_constant.nc'
-#                        cfile = pycosmo.open_file(cfile_name)    
-#                    else:
-#                        print('No c-file available for this resolution, aborting...')
-#                        return
-#                else:
-#                    print('No resolution attribute found, cannot find corresponding reference c-file...')
-#                    return
         else:
               cfile = pycosmo.open_file(cfile_name)
         
