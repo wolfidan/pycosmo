@@ -1,0 +1,12 @@
+!
+! NCL parameter table text file
+! MeteoSchweiz, Zurich, COSMO 4.7.1
+!
+-1 : 80 : -1 : 131
+59 :	CAPE :	J kg-1 :	cape (PROB)
+165 :	FF_10M :	- :	10m wind direction (PROB)
+167 :	T_2M :	K :	2m temperature (PROB)
+144 :	TOT_SNOW :	kg m-2 :	total snow amount (PROB)
+201 :	TMAX_2M :	K :	minimum 2m temperature (PROB)
+202 :	TMIN_2M :	K :	maximum 2m temperature (PROB)
+228 :	TOT_PREC :	kg m-2 :	total precipitation amount (PROB)

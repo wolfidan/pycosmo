@@ -1,0 +1,60 @@
+!
+! NCL parameter table text file
+! MeteoSchweiz, Zurich, COSMO 4.7.1
+!
+-1 : 80 : -1 : 2
+1 :	P :	Pa :	pressure
+2 :	PMSL :	Pa :	mean sea level pressure
+3 :	DPSDT :	Pa s-1 :	surface pressure change
+6 :	FI :	m2 s-2 :	geopotential
+8 :	HH :	m :	height
+10 :	TO3 :	Dobson :	vertical integrated ozone content
+11 :	T :	K :	temperature
+15 :	TMAX :	K :	2m maximum temperature
+16 :	TMIN :	K :	2m minimum temperature
+17 :	TD :	K :	2m dew point temperature
+31 :	DD :	undefined :	undefined
+32 :	FF :	undefined :	undefined
+33 :	U :	m s-1 :	U-component of wind
+34 :	V :	m s-1 :	V-component of wind
+39 :	OMEGA :	Pa s-1 :	omega
+40 :	W :	m s-1 :	vertical wind velocity
+51 :	QV :	kg kg-1 :	specific humidity
+52 :	RELHUM :	% :	relative humidity
+54 :	TQV :	kg m-2 :	precipitable water
+57 :	AEVAP :	kg m-2 :	surface evaporation
+58 :	TQI :	kg m-2 :	vertical integrated cloud ice
+59 :	TOT_PR :	kg m-2 s-1 :	total precipitation rate
+61 :	TOT_PREC :	kg m-2 :	total precipitation amount
+65 :	W_SNOW :	m :	surface snow amount
+66 :	H_SNOW :	m :	thickness of snow
+71 :	CLCT :	1 :	total cloud cover
+72 :	CLC_CON :	1 :	convective cloud area fraction
+73 :	CLCL :	1 :	low cloud cover
+74 :	CLCM :	1 :	medium cloud cover
+75 :	CLCH :	1 :	high cloud cover
+76 :	TQC :	kg m-2 :	vertical integrated cloud water
+78 :	SNOW_CON :	kg m-2 :	convective snowfall
+79 :	SNOW_GSP :	kg m-2 :	large scale snowfall
+81 :	FR_LAND :	1 :	land-sea fraction
+83 :	Z0 :	m :	surface roughness length
+84 :	ALB_RAD :	1 :	surface albedo
+85 :	T :	K :	soil surface temperature
+86 :	W_G :	m :	water content of 1. soil layer
+87 :	PLCOV :	1 :	vegetation area fraction
+90 :	RUNOFF :	kg m-2 :	subsurface runoff
+91 :	FR_ICE :	1 :	sea ice area fraction
+92 :	H_ICE :	m :	sea ice thickness
+111 :	ASOB :	W m-2 :	averaged surface net downward shortwave radiation
+112 :	ATHB :	W m-2 :	averaged surface net downward longwave radiation
+113 :	ASOB :	W m-2 :	averaged TOA net downward shortwave radiation
+114 :	ATHB :	W m-2 :	averaged TOA outgoing longwave radiation
+121 :	ALHFL :	W m-2 :	averaged surface latent heat flux
+122 :	ASHFL :	W m-2 :	averaged surface sensible heat flux
+124 :	AUMFL :	Pa :	averaged eastward stress
+125 :	AVMFL :	Pa :	averaged northward stress
+128 :	SUNSH :	undefined :	undefined
+129 :	SUNSH2 :	undefined :	undefined
+130 :	SUN_SUM :	undefined :	undefined
+131 :	SUN_SUM2 :	undefined :	undefined
+133 :	FCOR :	undefined :	undefined

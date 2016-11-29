@@ -1,0 +1,17 @@
+!
+! NCL parameter table text file
+! MeteoSchweiz, Zurich, COSMO 4.7.1
+!
+-1 : 80 : -1 : 203
+135 :	LCL_ML :	m :	height above ground of lifting condesation level
+136 :	LFC_ML :	m :	height above ground of level of free convection
+137 :	CAPE_3KM :	J kg-1 :	cape of mean surface layer parcel
+138 :	SWISS00 :	K :	showalter index with windshear
+139 :	SWISS12 :	K :	surface lifted index with windshear
+147 :	SLI :	K :	surface lifted index
+149 :	SI :	K :	showalter index
+155 :	BRN :	1 :	bulk richardson number
+156 :	HPBL :	m :	PBL height above ground computed with BRN
+157 :	CEILING :	m :	Cloud ceiling height (above MSL)
+203 :	CLDEPTH :	1 :	normalized cloud depth
+204 :	CLCT_MOD :	1 :	modified_total_cloud_cover

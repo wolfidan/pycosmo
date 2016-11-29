@@ -1,0 +1,15 @@
+!
+! NCL parameter table text file
+! MeteoSchweiz, Zurich, COSMO 4.7.1
+!
+-1 : 215 : -1 : 204
+21 :	FF_ANAI :	m s-1 :	wind speed analysis increment
+22 :	DD_ANAI :	degree :	wind direction analysis increment
+23 :	T_ANAI :	K :	temperature analysis increment
+24 :	FI_ANAI :	m2 s-2 :	geopotential analysis increment
+25 :	P_ANAI :	Pa :	pressure analysis increment
+26 :	PMSL_ANAI :	Pa :	msl pressure analysis increment
+27 :	QV_ANAI :	kg kg-1 :	specific humidity analysis increment
+28 :	QC_ANAI :	kg kg-1 :	specific cloud water content analysis increment
+29 :	TQV_ANAI :	kg m-2 :	precipitable water analysis increment
+30 :	TQC_ANAI :	kg m-2 :	cloud water analysis increment

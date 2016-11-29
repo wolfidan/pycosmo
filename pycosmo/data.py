@@ -5,18 +5,25 @@ Created on Mon Apr 20 14:59:47 2015
 @author: wolfensb
 """
 import pycosmo
+import pycosmo.utilities as utilities
 
 import numpy as np
 from collections import OrderedDict
 import copy
 from colormaps import get_colormap
 import glob, os
-import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
-import utilities
 from matplotlib.colors import LogNorm
+import matplotlib.pyplot as plt
 import datetime
 import warnings
+
+try:
+    from mpl_toolkits.basemap import Basemap
+    NO_BASEMAP=False
+except:
+    NO_BASEMAP=True
+
+
 
 BASEMAPS={} # Dictionary of basemaps
 
@@ -317,7 +324,7 @@ class DataClass:
 
         
         coord_names=self.coordinates.keys()
-        if 'lat_2D' in coord_names and 'lon_2D' in coord_names:
+        if 'lat_2D' in coord_names and 'lon_2D' in coord_names and not NO_BASEMAP:
             spatial=True
         else: spatial=False
 

@@ -5,30 +5,49 @@ on linux and tested with linux only. As such it is expected NOT to work on windo
 # Installation
 
 ## External dependencies
-You need to have at least a working installation of the swig library, the netCDF library 
-as well as a working installation of the GRIB2 library 
+You need to have at least a working installation of the swig, netCDF, geos and grib2 libraries 
 
 You can install them by running
 
-sudo apt-get install libnetcdf-dev libnetcdf libgrib-api-dev swig
+sudo apt-get install libnetcdf-dev libnetcdf libgrib-api-dev swig libgeos-dev
 
 ## Python dependencies
-The pycosmo library relies on numpy, scipy, matplotlib and pyproj
+The pycosmo library relies on numpy, scipy, matplotlib, pyproj, pynio and (optional) basemap
 
-You can install  numpy, scipy, matplotlib and pyproj by running
+You can install  numpy, scipy, matplotlib and pyproj by simply running
 
 sudo apt-get install python-pip
-sudo pip install numpy scipy matplotlib basemap pynio pyproj
+sudo pip install numpy scipy matplotlib pyproj
 
-For basemap and pynio you need miniconda so run
+### Pynio
+For pynio (IO of GRIB files) you need to download the source from
 
-wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
-bash Miniconda2-latest-Linux-x86_64.sh
+https://www.earthsystemgrid.org/dataset/pynio.1.4.1.0.html
 
-Enter yes to everything that is asked, then run
+Then unzip the archive and compile the library with
 
-~/miniconda2/bin/conda install --channel ncar pynio
-~/miniconda2/bin/conda install basemap
+export F2CLIBS=name_of_your_fortran_compiler; export F2CLIBS_PREFIX=path_to_your_libfortran_so_files; CFLAGS='-Wno-error=format-security'; export NCL_GRIB_PTABLE_PATH=path_to_your_grib_keys_folder; sudo -E python setup.py install
+
+Indeed pynio needs some environment variables to be defined to work properly. NCL_GRIB_PTABLE_PATH indicates the path of the grib keys required by Pynio to properly read COSMO files.
+These keys can be downloaded from http://www.ncl.ucar.edu/Applications/Files/gt.tar and are also given in your pycosmo folder. As an example, on my computer the installation command is
+
+export F2CLIBS=gfortran; export F2CLIBS_PREFIX=/usr/local/lib/; CFLAGS='-Wno-error=format-security'; export NCL_GRIB_PTABLE_PATH=~/pycosmo/pycosmo/grib_keys/; sudo -E python setup.py install
+
+### Basemap (optional)
+
+Basemap allows to plot georeferenced data on maps. It is optional, if you want to install it you need to download it from
+
+https://sourceforge.net/projects/matplotlib/files/matplotlib-toolkits/
+
+Then unzip the archive and start by compiling its dependency geos, go to the geos-3.3.3 folder inside the basemap main folder and run
+
+./configure --prefix==/usr/local/
+make
+sudo make install
+
+Then return to the main basemap folder and install the library with
+
+sudo python setup.py install
 
 ## Compilation
 
