@@ -315,12 +315,13 @@ class DataClass:
 
         # Check if shapes agree
         if HHL.data.shape == self.data.shape:
-            self.attributes['z-levels']=HHL.data.astype('float32')
+            self.attributes['z-levels'] = HHL.data.astype('float32')
             # Add info about associated c-file
             self.attributes['c-file'] = cfile_name
         else:
             warnings.warn('Heights found in the c-file do not correspond to size '\
             'of the data, could not assign heights!')
+
         return
 
 def hyb_avg(var):

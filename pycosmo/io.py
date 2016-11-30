@@ -121,51 +121,50 @@ class FileClass(object):
                 
         return varname_checked
     
-    def get_variable(self, variables, get_proj_info=True, assign_heights=False,
+    def get_variable(self, var_names, get_proj_info=True, assign_heights=False,
                      shared_heights=False, cfile_name=''):
-            
-        if shared_heights:
-            assign_heights = True
+        
         # Create dictionary of options
         import_opts = {'get_proj_info':get_proj_info,\
                        'shared_heights':shared_heights,\
                        'assign_heights':assign_heights,\
                        'cfile_name':cfile_name}
 
-        if isinstance(variables,list):
+        if isinstance(var_names,list):
             dic_var={}
-            for i,v in enumerate(variables):
+            for i,v in enumerate(var_names):
                 var = self.get_variable(v, **import_opts)
                 if assign_heights:
                     if i > 0 and shared_heights:
                         # Stop assigning heights, after first variable
                         import_opts['assign_heights'] = False
                         # If shared_heights is true we just copy the heights from the first variables to all others
-                        var.attributes['z-levels'] = dic_var[variables[0]].attributes['z-levels']
+                        var.attributes['z-levels'] = dic_var[var_names[0]].attributes['z-levels']
                 dic_var[v]=var
             return dic_var
-            
         else:
             print('--------------------------')
-            print('Reading variable '+variables)
-            if variables in self.dic_variables.keys():
-                return self.dic_variables[variables]
-            if variables in DERIVED_VARS:
-                var = get_derived_var(self,variables,import_opts)
+            print('Reading variable '+var_names)
+            if var_names in self.dic_variables.keys():
+                var = self.dic_variables[var_names]
+            elif var_names in DERIVED_VARS:
+                var = get_derived_var(self,var_names,import_opts)
             else:
-                varname_checked = self.check_varname(variables)
+                varname_checked = self.check_varname(var_names)
                 if varname_checked != '':
-                    var = d.DataClass(self, varname_checked)
-                    if import_opts['assign_heights']:
-                        var.assign_heights(cfile_name)
-                    self.dic_variables[var] = var
-                    print 'Variable was read successfully'
+                    var = d.DataClass(self, varname_checked, get_proj_info)
                 else:
-                    print 'Variable was not found in file_instance'
-                    var=None
+                    print('Variable was not found in file_instance')
+                    return
+
+            self.dic_variables[var_names] = var
+                    
+            # Assign heights if wanted
+            if assign_heights and var:
+                var.assign_heights(cfile_name)
+            print 'Variable was read successfully'
             print('--------------------------' )
             print('')
-            self.dic_variables[variables] = var
             return var 
 
     def check_if_variables_in_file(self, varnames):
