@@ -93,3 +93,10 @@ You can also save one or several variables to a NetCDF file (no GRIB support yet
 '''
 
 pc.savevar([T,P],name = 'output_ex.nc')
+
+
+#####################
+# Closing a file
+#####################
+
+file_h.close()

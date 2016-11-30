@@ -200,3 +200,6 @@ overlay_options['label_position']='top' # Can be top, bottom, right or left
 pc.plot([slice_QR,slice_QG, slice_QC, slice_QS],[options, options2, options3, options4], overlay_options = overlay_options) # You can still change everything afterwards
 plt.title('Specific water contents at 8 deg. lon.')
 pc.savefig('Q_overlay.png',dpi=200)
+
+
+file_h.close()

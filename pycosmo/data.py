@@ -321,7 +321,8 @@ class DataClass:
         else:
             warnings.warn('Heights found in the c-file do not correspond to size '\
             'of the data, could not assign heights!')
-
+        
+        cfile.close()
         return
 
 def hyb_avg(var):

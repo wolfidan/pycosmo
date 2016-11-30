@@ -197,3 +197,5 @@ print(T_alt_levels[:].shape) # shape is 10, 147, 147 as expected
 print(T_alt_levels.coordinates['heights']) # The new coordinate "heights" replaces
 # the hyb_levels coordinate
 
+
+file_h.close()
