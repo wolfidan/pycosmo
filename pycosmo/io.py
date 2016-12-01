@@ -82,6 +82,8 @@ class FileClass(object):
             return object.__getattribute__(self,attrib)
             
     def close(self):
+        self.dic_variables = []
+        del self.dic_variables
         self._handle.close()
         self.dic_variables={}
         
