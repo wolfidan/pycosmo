@@ -444,8 +444,10 @@ def extract(variables, slice_type, idx, parallel = False):
             try: 
                 print('Trying to compute atm. refractivity (N) from COSMO file')
                 cfile = var0.attributes['c-file']
-                N = var0.file.get_variable('N',assign_heights = True,cfile=cfile)
+                N = var0.file.get_variable('N',assign_heights = True,
+                                           cfile_name=cfile)
             except:
+                pass
                 refraction_method = 1
                 print('Could not compute N from COSMO data'+
                       ' Using refraction_method = 1, instead')
