@@ -11,6 +11,7 @@ import pycosmo.data as d
 import PyNIO.Nio as Nio 
 import numpy as np
 import os
+import gc # garbage collector
 import warnings
 from fnmatch import fnmatch
 
@@ -86,6 +87,7 @@ class FileClass(object):
         del self.dic_variables
         self._handle.close()
         self.dic_variables={}
+        gc.collect() # Force garbage collection
         
     def __str__(self):
         output = self.__getattribute__('__str__')()
