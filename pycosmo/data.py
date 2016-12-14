@@ -278,16 +278,21 @@ class DataClass:
         # The user can optionally specify a c-file that contains the constant parameters of the simulation (altitude, topography)
         # If no c-file is specified the function tries to find one in the folder of the file and if not possible use some standard c-files for Switzerland
         if cfile_name == '':
+            file_folder=os.path.dirname(self.file.name)+'/'
             print('No c-file specified, trying to find one in the same folder...')
-            file_folder=os.path.dirname(self.file.name)
-            cfile_names = glob.glob(file_folder+'*c.*')
-            if(len(cfile_name)>1):
+            print('Folder is :' + file_folder)
+            cfile_names = pycosmo.get_model_filenames(file_folder)['c']
+            if len(cfile_names):
                 cfile_name = cfile_names[0]
-                cfile = pycosmo.open_file(cfile_name)
-                print('c-file found in folder: '+cfile_name)
-        else:
-              cfile = pycosmo.open_file(cfile_name)
-        
+                print('c-file found in folder')
+                
+        try:
+            cfile = pycosmo.open_file(cfile_name)
+        except:
+            raise IOError('Could not read cfile, please give a valid name'\
+                          ' or make sure that there is a valid cfile in the same'\
+                          ' folder as your main COSMO file')
+            
         # HHL is a 3D matrix that gives the height of every element
         HHL = cfile.get_variable('HH_GDS10_HYBL')
 
@@ -319,7 +324,7 @@ class DataClass:
             # Add info about associated c-file
             self.attributes['c-file'] = cfile_name
         else:
-            warnings.warn('Heights found in the c-file do not correspond to size '\
+            raise IOError('Heights found in the c-file do not correspond to size '\
             'of the data, could not assign heights!')
         
         cfile.close()
@@ -328,8 +333,8 @@ class DataClass:
 def hyb_avg(var):
     cp=var.copy()
     if not (var.file.type == 'h' or var.file.type == 'c'):
-        print 'Averaging on hybrid layers only make sense for variables that are on hybrid levels'
-        print 'No p-file_instances or z-file_instances, or horizontal 2D variables'
+        print('Averaging on hybrid layers only make sense for variables that are on hybrid levels')
+        print('No p-file_instances or z-file_instances, or horizontal 2D variables')
         return
     if var.dim == 3:
         cp.data=0.5*(var.data[0:-1,:,:] + var.data[1:,:,:])
