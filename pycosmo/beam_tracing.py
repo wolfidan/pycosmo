@@ -200,7 +200,7 @@ def ref_ODE_s(range_vec, elevation_angle, coords_radar, N):
     n_h_spline = _piecewise_linear(h, n_vert_profile)
     dn_dh_spline = _piecewise_linear(h[0:-1],np.diff(n_vert_profile)/np.diff(h))
     
-    z_0 = [coords_radar[2],np.sin(elevation_angle/180.*np.pi)]
+    z_0 = [coords_radar[2],np.deg2rad(elevation_angle)]
     # Solve second-order ODE
     Z = odeint(deriv_z,z_0,range_vec,args=(n_h_spline,dn_dh_spline,RE))
     H = Z[:,0] # Heights above ground
@@ -210,7 +210,7 @@ def ref_ODE_s(range_vec, elevation_angle, coords_radar, N):
     S[0] = 0
     for i in range(1,len(S)): # Solve for arc distances
         S[i] = S[i-1]+RE*np.arcsin((np.cos(E[i-1])*dR)/(RE+H[i]))
-        
+
     return S.astype('float32'), H.astype('float32')
     
 def ref_4_3(range_vec, elevation_angle, coords_radar):
