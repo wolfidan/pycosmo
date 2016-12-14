@@ -82,31 +82,32 @@ def _piecewise_linear(x,y):
     return ufunclike
 
 def integrate_quad(list_GH_pts):
-    num_beams=len(list_GH_pts)
-    
-    list_variables=list_GH_pts[0].values.keys()
+    n_beams = len(list_GH_pts)
+    n_gates = len(list_GH_pts[0].mask)
+    list_variables = list_GH_pts[0].values.keys()
  
     # Sum the mask of all beams to get overall mask
-    mask=np.zeros(num_beams,) # This mask serves to tell if the measured point is ok, or below topo or above COSMO domain
+    mask = np.zeros(n_gates,) # This mask serves to tell if the measured point is ok, or below topo or above COSMO domain
+    frac_pow = np.zeros(n_gates,) # Fraction of power received at antenna
     for i,p in enumerate(list_GH_pts):
         mask = _sum_arr(mask,p.mask) # Get mask of every Beam
-    mask/=float(num_beams) #mask == 1 means that every Beam is below TOPO, 
+        frac_pow = _sum_arr(frac_pow, (p.mask==0).astype(float)*p.GH_weight)
+
+    mask/=float(n_beams) #mask == 1 means that every Beam is below TOPO, 
                             #smaller than 0 that at least one Beam is above COSMO domain
     
     integrated_variables={}
     for k in list_variables:
         integrated_variables[k]=[float('nan')]
-        sum_weights=0
-        for i in list_GH_pts:
-            sum_weights+=i.GH_weight
-        for i in list_GH_pts:
+        for p in list_GH_pts:
             integrated_variables[k] = _nansum_arr(integrated_variables[k],
-                                        i.values[k]*i.GH_weight/sum_weights)
+                                        p.values[k]*p.GH_weight)
+        
         integrated_variables[k][np.logical_or(mask>1,mask<=-1)] = float('nan')
-        integrated_variables[k] /= sum_weights
-    
+        integrated_variables[k] /= frac_pow # Normalize by valid pts
+        
     # Get index of central beam
-    idx_0=int(num_beams/2)
+    idx_0=int(n_beams/2)
 
     heights_radar=list_GH_pts[idx_0].heights_profile
     distances_radar=list_GH_pts[idx_0].dist_profile
@@ -114,7 +115,7 @@ def integrate_quad(list_GH_pts):
     lons=list_GH_pts[idx_0].lons_profile
 
     integrated_beam = _Beam(integrated_variables,mask,lats, lons, distances_radar, heights_radar)
-    return integrated_beam
+    return integrated_beam, frac_pow
 
     
 def quad_pts_weights(beamwidth, npts_GH):

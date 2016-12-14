@@ -486,6 +486,7 @@ def extract(variables, slice_type, idx, parallel = False):
         lats_scan = np.zeros((len(rangevec),len(azimuths)))
         heights_scan = np.zeros((len(rangevec),len(azimuths)))
         dist_ground = np.zeros((len(rangevec),len(azimuths)))
+        frac_power = np.zeros((len(rangevec),len(azimuths)))
         
         # Main loop
         for radial,az in enumerate(azimuths): # Loop on all radials
@@ -536,7 +537,7 @@ def extract(variables, slice_type, idx, parallel = False):
                             weights[i,j]))         
                         
             # Integrate all sub-beams
-            scan = integrate_quad(list_beams)    
+            scan, frac_pow = integrate_quad(list_beams)    
             
             # Add radial to slices
             for sli in slices: 
@@ -547,7 +548,8 @@ def extract(variables, slice_type, idx, parallel = False):
             lons_scan[:,radial] = scan.lons_profile
             heights_scan[:,radial] = scan.heights_profile
             dist_ground[:,radial] = scan.dist_profile
-        
+            frac_power[:,radial] = frac_pow
+            
         # Final bookkeeping
         for sli in slices:      
             sli.dim = sli.dim - 1
@@ -559,6 +561,7 @@ def extract(variables, slice_type, idx, parallel = False):
             sli.attributes['lat_2D'] = lats_scan
             sli.attributes['altitude'] = heights_scan
             sli.attributes['elevation'] = elevation
+            sli.attributes['fraction_power'] = frac_power
             sli.attributes['dist_ground'] = dist_ground
             sli.name+='_PPI_SLICE'
             sli.coordinates.pop('hyb_levels',None) # not needed anymore
@@ -660,7 +663,7 @@ def extract(variables, slice_type, idx, parallel = False):
         lats_scan = np.zeros((len(rangevec),len(elevations)))
         dist_ground = np.zeros((len(rangevec),len(elevations)))
         heights_scan = np.zeros((len(rangevec),len(elevations)))
-        
+        frac_power = np.zeros((len(rangevec),len(elevations)))
         
         # Main loop
         for radial,elev in enumerate(elevations): # Loop on all radials
@@ -712,7 +715,7 @@ def extract(variables, slice_type, idx, parallel = False):
                             weights[i,j]))         
                         
             # Integrate all sub-beams
-            scan = integrate_quad(list_beams)    
+            scan, frac_pow = integrate_quad(list_beams)    
             
             # Add radial to slices
             for sli in slices: 
@@ -723,6 +726,7 @@ def extract(variables, slice_type, idx, parallel = False):
             lons_scan[:,radial] = scan.lons_profile
             heights_scan[:,radial] = scan.heights_profile
             dist_ground[:,radial] = scan.dist_profile
+            frac_power[:,radial] = frac_pow
             
         # Final bookkeeping
         for sli in slices:      
@@ -735,6 +739,7 @@ def extract(variables, slice_type, idx, parallel = False):
             sli.attributes['lon_2D'] = lons_scan
             sli.attributes['lat_2D'] = lats_scan
             sli.attributes['altitude'] = heights_scan
+            sli.attributes['frac_power'] = frac_power
             sli.attributes['azimuth'] = azimuth
             sli.name+='_RHI_SLICE'
             sli.coordinates.pop('hyb_levels',None) # not needed anymore
