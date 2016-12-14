@@ -152,9 +152,9 @@ def refraction_sh(range_vec, elevation_angle, coords_radar, refraction_method, N
     # '4/3': Standard 4/3 refraction model (offline, very fast)
     # ODE_s: differential equation of atmospheric refraction assuming horizontal homogeneity
 
-    if refraction_method==1:
+    if refraction_method == 1:
         S,H = ref_4_3(range_vec, elevation_angle, coords_radar)
-    elif refraction_method==2:
+    elif refraction_method == 2:
         S,H = ref_ODE_s(range_vec, elevation_angle, coords_radar, N)
 
     return S,H  
@@ -199,12 +199,12 @@ def ref_ODE_s(range_vec, elevation_angle, coords_radar, N):
     # Create piecewise linear interpolation for n as a function of height
     n_h_spline = _piecewise_linear(h, n_vert_profile)
     dn_dh_spline = _piecewise_linear(h[0:-1],np.diff(n_vert_profile)/np.diff(h))
-    
-    z_0 = [coords_radar[2],np.deg2rad(elevation_angle)]
+
+    z_0 = [coords_radar[2],np.sin(np.deg2rad(elevation_angle))]
     # Solve second-order ODE
     Z = odeint(deriv_z,z_0,range_vec,args=(n_h_spline,dn_dh_spline,RE))
     H = Z[:,0] # Heights above ground
-    E = Z[:,1] # Elevations
+    E = np.arcsin(Z[:,1]) # Elevations
     S = np.zeros(H.shape) # Arc distances
     dR = range_vec[1]-range_vec[0]
     S[0] = 0
@@ -226,3 +226,6 @@ def ref_4_3(range_vec, elevation_angle, coords_radar):
     S=ke*EarthRadius*np.arcsin((range_vec*np.cos(elevation_angle))/(ke*EarthRadius+H))
     
     return S.astype('float32'),H.astype('float32')
+
+
+
