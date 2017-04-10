@@ -31,7 +31,7 @@ export F2CLIBS=name_of_your_fortran_compiler; export F2CLIBS_PREFIX=path_to_your
 Indeed pynio needs some environment variables to be defined to work properly. NCL_GRIB_PTABLE_PATH indicates the path of the grib keys required by Pynio to properly read COSMO files.
 These keys can be downloaded from http://www.ncl.ucar.edu/Applications/Files/gt.tar and are also given in your pycosmo folder (folder cosmo_grib_keys). As an example, on my computer the installation command is
 
-export F2CLIBS=gfortran; export F2CLIBS_PREFIX=/usr/local/lib/; CFLAGS='-Wno-error=format-security'; export NCL_GRIB_PTABLE_PATH=~/pycosmo/pycosmo/cosmo_grib_keys/; sudo -E python setup.py install
+export F2CLIBS=gfortran; export F2CLIBS_PREFIX=/usr/local/lib/; export CFLAGS='-Wno-error=format-security'; export NCL_GRIB_PTABLE_PATH=~/pycosmo/pycosmo/cosmo_grib_keys/; sudo -E python setup.py install
 
 ### Basemap (optional)
 
