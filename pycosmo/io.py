@@ -180,6 +180,7 @@ class FileClass(object):
        
             
 if __name__ == '__main__':
+#    os.environ['NCL_GRIB_PTABLE_PATH']='/data/pycosmo/pycosmo/cosmo_grib_tables/'
     import pycosmo as pc
     file_h = pc.open_file('/ltedata/COSMO/Validation_operator/case2014110500_ONEMOM/lfsf00135500')
     
