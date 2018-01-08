@@ -10,7 +10,7 @@ try:
     NO_BASEMAP=False
 except:
     NO_BASEMAP=True
-    
+
 
 BASEMAPS={} # Dictionary of basemaps
 
@@ -20,9 +20,9 @@ def plot(var, options={},basemap='',overlay_options={}):
     if isinstance(var,list):
         _overlay(var,options,overlay_options)
         return
-        
+
     fig={} # The output
-    
+
     if var.dim == 3:
         print('No 3D plotting functions are implemented yet...sorry')
         print('Returning empty handle')
@@ -44,16 +44,16 @@ def plot(var, options={},basemap='',overlay_options={}):
             options['levels']=np.logspace(np.nanmin(var[:].ravel()),
                                 np.nanmax(var[:].ravel()),num_levels)
         else:
-            options['levels']=np.linspace(np.nanmin(var[:].ravel()), 
+            options['levels']=np.linspace(np.nanmin(var[:].ravel()),
                                 np.nanmax(var[:].ravel()),num_levels)
     if 'no_colorbar' not in options.keys():
         options['no_colorbar']=False
     if 'cargs' not in options.keys():
         options['cargs']={}
     if 'cbar_title' not in options.keys():
-        options['cbar_title']= var.attributes['units'] 
+        options['cbar_title']= var.attributes['units']
 
-    
+
     coord_names=var.coordinates.keys()
     if 'lat_2D' in coord_names and 'lon_2D' in coord_names and not NO_BASEMAP:
         spatial=True
@@ -63,10 +63,10 @@ def plot(var, options={},basemap='',overlay_options={}):
 
     if spatial:
         m = _get_basemap(var,basemap = basemap)
-            
-        x, y = m(var.coordinates['lon_2D'], 
+
+        x, y = m(var.coordinates['lon_2D'],
                  var.coordinates['lat_2D']) # compute map proj coordinates
-        
+
         m.contourf(x,y,mask,levels=[0.0,0.1,1],colors=['white','Grey'])
         if options['filled']:
             if options['scale'] == 'log':
@@ -74,20 +74,24 @@ def plot(var, options={},basemap='',overlay_options={}):
                 vmax=max(options['levels'])
                 data_no_zero=var.data
                 data_no_zero[data_no_zero<vmin]=0.00000001 # Hack to use log scale (won't be plotted)
-                CS = m.contourf(x,y,var.data, cmap=options['cmap'], 
+                CS = m.contourf(x,y,var.data, cmap=options['cmap'],
                               levels=options['levels'], vmin=vmin, vmax=vmax,
-                              norm=LogNorm(vmin=vmin, vmax=vmax),**options['cargs'])
+                              norm=LogNorm(vmin=vmin, vmax=vmax),
+                              alpha = options['alpha'], **options['cargs'])
             else:
-                CS=m.contourf(x,y,var.data, cmap=options['cmap'],levels=options['levels'],extend='max',  
-                              vmin=min(options['levels']),**options['cargs'])
+                CS = m.contourf(x,y,var.data, cmap=options['cmap'],
+                              levels=options['levels'],extend='max',
+                              vmin=min(options['levels']),
+                              alpha = options['alpha'],**options['cargs'])
         else:
-               
+
             mask = mask.astype(float)
-            CS=m.contour(x,y,var.data, cmap=options['cmap'], 
+            CS=m.contour(x,y,var.data, cmap=options['cmap'],
                          levels=options['levels'],extend='max',
+                         alpha = options['alpha'],
                          vmin=min(options['levels']),**options['cargs'])
             plt.clabel(CS, inline=1, fontsize=9)
-            
+
         fig['basemap']=m
     else:
         if options['alt_coordinates']:
@@ -107,37 +111,40 @@ def plot(var, options={},basemap='',overlay_options={}):
                       ' levels instead...')
                 options['plot_altitudes'] = False
 
-                
+
         if not options['alt_coordinates']:
             x=var.coordinates[coord_names[1]]
             y=var.coordinates[coord_names[0]]
-        plt.contourf(x,y,mask, levels=[0.0,0.1,1],colors=['white','Grey'])     
+        plt.contourf(x,y,mask, levels=[0.0,0.1,1],colors=['white','Grey'])
         if options['filled']:
             if options['scale'] == 'log':
                  vmin=min(options['levels'])
                  vmax=max(options['levels'])
                  data_no_zero=var.data
                  data_no_zero[data_no_zero<vmin]=0.00000001 # Hack to use log scale (won't be plotted)
-                 
+
                  CS=plt.contourf(x,y,var.data, cmap=options['cmap'],
                                  levels=options['levels'], vmin=vmin,
-                                 vmax=vmax, norm=LogNorm(vmin=vmin, 
-                                 vmax=vmax),**options['cargs'])
+                                 vmax=vmax, norm=LogNorm(vmin=vmin,
+                                 vmax=vmax), alpha = options['alpha'],
+                                 **options['cargs'])
             else:
-                 CS=plt.contourf(x,y,var.data, cmap=options['cmap'], 
+                 CS=plt.contourf(x,y,var.data, cmap=options['cmap'],
                                  levels=options['levels'], extend='max'
-                                 ,vmin=min(options['levels']),**options['cargs'])
+                                 ,vmin=min(options['levels']),
+                                 alpha = options['alpha'],**options['cargs'])
         else:
              mask=mask.astype(float)
-             CS=plt.contour(x,y,var.data, cmap=options['cmap'], 
-                            levels=options['levels'],extend='max', 
-                            vmin=min(options['levels']),**options['cargs'])
+             CS=plt.contour(x,y,var.data, cmap=options['cmap'],
+                            levels=options['levels'],extend='max',
+                            vmin=min(options['levels']),
+                            alpha = options['alpha'],**options['cargs'])
              plt.clabel(CS, inline=1, fontsize=9)
              plt.xlabel(coord_names[1])
              plt.ylabel(coord_names[0])
 
     plt.title(var.attributes['long_name'].capitalize()+' ['+var.attributes['units']+']')
-   
+
     if not options['no_colorbar']:
         if options['filled']:
             cbar=plt.colorbar(fraction=0.046, pad=0.04, label=options['cbar_title'])
@@ -148,10 +155,10 @@ def plot(var, options={},basemap='',overlay_options={}):
             box = ax.get_position()
             ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
             for pc in CS.collections:
-                proxy = [plt.Rectangle((0,0),1,1,fc = pc.get_edgecolor()[0]) for pc in CS.collections] 
+                proxy = [plt.Rectangle((0,0),1,1,fc = pc.get_edgecolor()[0]) for pc in CS.collections]
             lgd=plt.legend(proxy, _format_ticks(options['levels'],decimals=2),loc='center left', bbox_to_anchor=(1, 0.6), title=options['cbar_title'])
             ax.add_artist(lgd)
-    
+
     if options['alt_coordinates']:
         if var.slice_type in ['lat','lon','latlon']:
             plt.ylabel('Altitude [m]')
@@ -163,23 +170,23 @@ def plot(var, options={},basemap='',overlay_options={}):
             plt.xlabel('distance [m]')
 
         plt.gca().set_axis_bgcolor('Gray')
-        
+
     fig['cont_handle']=CS
     fig['fig_handle']=plt.gcf()
     del options
-   
+
     return fig
 
 
 def _overlay(list_vars, var_options=[{},{}], overlay_options={}):
-    
+
     overlay_options_keys=overlay_options.keys()
 
     if 'labels' not in overlay_options_keys:
         overlay_options['labels']=[var.name for var in list_vars]
     if 'label_position' not in overlay_options_keys:
         overlay_options['label_position']='right'
-   
+
     plt.hold(False)
     n_vars=len(list_vars)
     offsets=np.linspace(0.9,0.1,n_vars)
@@ -187,14 +194,19 @@ def _overlay(list_vars, var_options=[{},{}], overlay_options={}):
     for idx, var in enumerate(list_vars):
         plt.hold(True)
         opt = var_options[idx]
-        opt['no_colorbar'] = True 
+        opt['no_colorbar'] = True
         fig = plot(var,var_options[idx], basemap)
         ax = plt.gca()
         box = ax.get_position()
-        
-        for pc in fig['cont_handle'].collections:
-                proxy = [plt.Rectangle((0,0),1,1,fc = pc.get_edgecolor()[0]) for pc in fig['cont_handle'].collections] 
-        
+
+        filled = opt['filled']
+        if filled:
+            for pc in fig['cont_handle'].collections:
+                proxy = [plt.Rectangle((0,0),1,1, fc = pc.get_facecolor()[0]) for pc in fig['cont_handle'].collections]
+        else:
+            for pc in fig['cont_handle'].collections:
+                proxy = [plt.Rectangle((0,0),1,1, fc = pc.get_edgecolor()[0]) for pc in fig['cont_handle'].collections]
+
         if overlay_options['label_position'] == 'right':
             ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
             lgd=plt.legend(proxy, _format_ticks(opt['levels'],decimals=2),
@@ -208,24 +220,24 @@ def _overlay(list_vars, var_options=[{},{}], overlay_options={}):
         elif overlay_options['label_position'] == 'top':
             ax.set_position([box.x0, box.y0, box.width, box.height*0.8])
             lgd=plt.legend(proxy, _format_ticks(opt['levels'],decimals=2),
-                           loc='lower center', bbox_to_anchor=(offsets[idx],1.05), 
+                           loc='lower center', bbox_to_anchor=(offsets[idx],1.05),
                            title=overlay_options['labels'][idx])
         elif overlay_options['label_position'] == 'bottom':
             ax.set_position([box.x0, box.y0+0.05*box.height, box.width, box.height*0.8])
             lgd=plt.legend(proxy, _format_ticks(opt['levels'],decimals=2),
                            loc='upper center', bbox_to_anchor=(offsets[idx],-0.05),
-                           title=overlay_options['labels'][idx])                        
+                           title=overlay_options['labels'][idx])
         ax.add_artist(lgd)
     return fig
-       
+
 def _format_ticks(labels,decimals=2):
     labels_f=labels
     for idx, val in enumerate(labels):
         if int(val) == val:  labels_f[idx]=val
         else: labels_f[idx]=round(val,decimals)
-    return labels_f    
+    return labels_f
 
-    
+
 def make_colorbar(fig,orientation='horizontal',label=''):
 
     if orientation == 'horizontal':
@@ -251,15 +263,15 @@ def make_colorbar(fig,orientation='horizontal',label=''):
     cbar_ax.get_xaxis().tick_bottom()
     cbar_ax.axes.get_yaxis().set_visible(False)
     cbar_ax.axes.get_xaxis().set_visible(False)
-    cbar_ax.set_frame_on(False)       
-    
+    cbar_ax.set_frame_on(False)
+
     cbar=plt.colorbar(cax=axins, orientation=orientation,label=label)
 
     levels = fig['cont_handle'].levels
     cbar.set_ticks(levels)
     cbar.set_ticklabels(_format_ticks(levels,decimals=2))
     return cbar
-    
+
 def _get_basemap(var, basemap = ''):
     domain=var.attributes['domain_2D']
     domain_str=str(domain)
@@ -273,7 +285,7 @@ def _get_basemap(var, basemap = ''):
         llcrnrlon=domain[0][1],urcrnrlon=domain[1][1],\
         rsphere=6371200.,resolution='h',area_thresh=10000)
         BASEMAPS[domain_str] = basemap
-         
+
     basemap.drawcoastlines()
     basemap.drawstates()
     basemap.drawcountries()
@@ -284,7 +296,7 @@ def _get_basemap(var, basemap = ''):
     # draw meridians
     meridians = np.arange(int(0.8*domain[0][1]),int(1.2*domain[1][1]),1)
     basemap.drawmeridians(meridians,labels=[0,0,0,1],fontsize=10)
-        
+
     return basemap
 
 
@@ -305,23 +317,23 @@ log      -> log: if True a log scale is used to define the positions of the colo
 def get_colormap(col_type, position = None, log = False):
     try:
         if col_type == 'precip':
-            colors = [(43,66,181), (67,222,139), (245,245,45), (252,45,45)] 
+            colors = [(43,66,181), (67,222,139), (245,245,45), (252,45,45)]
             cmap = make_cmap(colors, bit=True)
             cmap.set_under(color="LightGrey")
         elif col_type in cm.__dict__.keys():
-            cmap=plt.get_cmap(col_type)    
+            cmap=plt.get_cmap(col_type)
         else:
             col_names = col_type
             cmap = make_cmap(col_names, position = position, log = log, bit=True)
     except:
         print('Could not find or create appropriate colormap')
         print('Assigning default one (jet)')
-        cmap=plt.get_cmap('jet')  
+        cmap=plt.get_cmap('jet')
 
     return cmap
-              
-             
-             
+
+
+
 def make_cmap(colors, position=None, bit=False, log=False):
      '''
      make_cmap takes a list of tuples which contain RGB values. The RGB
@@ -339,10 +351,10 @@ def make_cmap(colors, position=None, bit=False, log=False):
          if not log:
              position = np.linspace(0,1,len(colors))
          else:
-             position = (np.logspace(0,np.log10(11),len(colors))-1)/10.      
+             position = (np.logspace(0,np.log10(11),len(colors))-1)/10.
              # This is to account for issue where position[-1] = 0.99999999...
              position[0] = 0.
-             position[-1] = 1. 
+             position[-1] = 1.
      else:
          if len(position) != len(colors):
              raise ValueError("position length must be the same as colors")
