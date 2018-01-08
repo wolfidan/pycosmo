@@ -184,10 +184,9 @@ if __name__ == '__main__':
     import pycosmo as pc
     file_h = pc.open_file('/ltedata/COSMO/Validation_operator/case2014110500_ONEMOM/lfsf00135500')
     
-    U = file_h.get_variable('U')
+    U = file_h.get_variable('QR_v')
     U.assign_heights(cfile_name='/ltedata/COSMO/Validation_operator/case2014110500_ONEMOM/lfsf00000000c')
-    T = file_h.get_variable('T')
-    T.assign_heights(cfile_name='/ltedata/COSMO/Validation_operator/case2014110500_ONEMOM/lfsf00000000c')    
+  
 #    
 #    P = file_h.get_variable('P')
 #    
